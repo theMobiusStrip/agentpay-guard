@@ -1,0 +1,26 @@
+{
+  "name": "x402-idempotency-middleware",
+  "version": "0.0.1",
+  "description": "Server-side reference middleware: atomic claim-with-lease + cached-response idempotency keyed on the payer-signed EIP-3009 authorization (EIP-712 digest), not the client-supplied payment-identifier.",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc -b",
+    "test": "vitest run"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "viem": "2.31.7"
+  }
+}
