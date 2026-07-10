@@ -1,0 +1,7 @@
+{
+  "files": [],
+  "references": [
+    { "path": "./packages/agentpay-guard" },
+    { "path": "./packages/x402-idempotency-middleware" }
+  ]
+}

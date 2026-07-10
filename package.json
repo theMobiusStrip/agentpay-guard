@@ -1,0 +1,27 @@
+{
+  "name": "agentpay-guard-monorepo",
+  "private": true,
+  "version": "0.0.1",
+  "description": "agentpay-guard: stateful x402 policy plugin + DrainBench harm-metric benchmark (monorepo)",
+  "type": "module",
+  "workspaces": [
+    "packages/*",
+    "spike",
+    "examples"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces --if-present",
+    "test": "vitest run",
+    "test:g1seed": "vitest run packages/agentpay-guard/test",
+    "typecheck": "tsc -b"
+  },
+  "devDependencies": {
+    "@types/node": "24.0.10",
+    "tsx": "4.20.3",
+    "typescript": "5.8.3",
+    "vitest": "3.2.4"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

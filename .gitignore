@@ -1,0 +1,20 @@
+node_modules/
+dist/
+*.tsbuildinfo
+.env
+.env.*
+!.env.example
+coverage/
+.DS_Store
+spike/e2e/.wallet.json
+
+# IDE
+*.code-workspace
+.vscode/
+.idea/
+
+# Private planning doc
+agentpay-guard-PLAN.md
+
+# Private milestone/process docs
+docs/process/
