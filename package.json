@@ -10,7 +10,7 @@
     "examples"
   ],
   "scripts": {
-    "build": "npm run build --workspaces --if-present",
+    "build": "npm run build -w agentpay-guard -w x402-idempotency-middleware",
     "test": "vitest run",
     "test:g1seed": "vitest run packages/agentpay-guard/test",
     "typecheck": "tsc -b"
