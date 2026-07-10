@@ -1,0 +1,33 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+      - run: npm ci
+      # Build the publishable packages (produces dist consumed by the spike probe).
+      - run: npm run build
+      # Typecheck the whole workspace + the spike harness + bench + examples.
+      - run: npx tsc -b
+      - run: npx tsc -p spike/tsconfig.json
+      - run: npx tsc -p packages/drainbench/tsconfig.json --noEmit
+      - run: npx tsc -p examples/tsconfig.json
+      - run: npx tsc -p bench/tsconfig.json
+      # Full suite: G1 store gate + evaluate/guard/gates + replay middleware +
+      # DrainBench deltas + agent scaffold. Grows with G1–G4.
+      - run: npx vitest run
+      # Offline G0 hook probe against the real pinned SDK (no chain funds needed).
+      - run: npm run -w @agentpay-guard/spike hook-probe
+      # DrainBench deterministic A/B + the stochastic demonstration.
+      - run: npm run -w @agentpay-guard/drainbench bench
+      - run: npm run -w @agentpay-guard/drainbench agent-demo
