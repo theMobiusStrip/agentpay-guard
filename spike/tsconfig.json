@@ -1,0 +1,12 @@
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "composite": false,
+    "declaration": false,
+    "types": ["node"],
+    "resolveJsonModule": true,
+    "allowImportingTsExtensions": true
+  },
+  "include": ["hook-probe", "e2e"]
+}
