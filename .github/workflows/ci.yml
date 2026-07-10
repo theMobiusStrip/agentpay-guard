@@ -23,6 +23,8 @@ jobs:
       - run: npx tsc -p packages/drainbench/tsconfig.json --noEmit
       - run: npx tsc -p examples/tsconfig.json
       - run: npx tsc -p bench/tsconfig.json
+      # Type-aware lint (async-correctness rules over every TS project).
+      - run: npm run lint
       # Full suite: G1 store gate + evaluate/guard/gates + replay middleware +
       # DrainBench deltas + agent scaffold. Grows with G1–G4.
       - run: npx vitest run

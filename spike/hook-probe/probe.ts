@@ -41,7 +41,7 @@ function syntheticPaymentRequired(amount: string, maxTimeoutSeconds = 20) {
 function makeClient() {
   const account = privateKeyToAccount(generatePrivateKey());
   const client = new x402Client();
-  client.register(BASE_SEPOLIA, new ExactEvmScheme(account as never));
+  client.register(BASE_SEPOLIA, new ExactEvmScheme(account));
   return { client, account };
 }
 
@@ -78,7 +78,7 @@ async function main() {
     const hasResourceUrl = !!c?.paymentRequired?.resource?.url;
     const hasHttpMethodBody =
       (c as Record<string, unknown>)["request"] !== undefined ||
-      (sr as Record<string, unknown>)["method"] !== undefined;
+      (sr)["method"] !== undefined;
     record(
       "Q1c: originating HTTP request (method/body) at hook",
       !hasHttpMethodBody, // expected: NOT exposed -> confirms request-side binding moves to wrapper
@@ -131,10 +131,11 @@ async function main() {
     };
     const a1 = p1.payload.authorization ?? {};
     const a2 = p2.payload.authorization ?? {};
-    const nonce1 = String(a1["nonce"] ?? "");
-    const nonce2 = String(a2["nonce"] ?? "");
+    const nonce1 = typeof a1["nonce"] === "string" ? a1["nonce"] : "";
+    const nonce2 = typeof a2["nonce"] === "string" ? a2["nonce"] : "";
     const noncesDiffer = nonce1 !== "" && nonce1 !== nonce2; // SDK mints fresh random per call
-    const validAfterZero = String(a1["validAfter"]) === "0";
+    const va = a1["validAfter"];
+    const validAfterZero = va === "0" || va === 0;
     const vb = Number(a1["validBefore"]);
     const nowS = Math.floor(Date.now() / 1000);
     const vbSane = vb > nowS && vb <= nowS + 25; // ~ now + 20s
@@ -146,7 +147,7 @@ async function main() {
     record(
       "Q2: signed EIP-3009 fields (validAfter=0, validBefore≈now+timeout)",
       validAfterZero && vbSane,
-      `validAfter=${a1["validAfter"]} validBefore=${a1["validBefore"]} sane=${vbSane}`,
+      `validAfter=${JSON.stringify(a1["validAfter"])} validBefore=${JSON.stringify(a1["validBefore"])} sane=${vbSane}`,
     );
   }
 

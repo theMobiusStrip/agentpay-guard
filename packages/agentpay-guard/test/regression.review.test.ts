@@ -71,12 +71,12 @@ describe("Finding 1: nonce correlation survives concurrent-identical reordering"
     const { client, store } = install(1_000_000_000, 1_000_000n, true);
     const vb = String(1_000_000 + 20);
     // Interleaving A from the review: before A, before B, after A, RESPONSE A, after B, response B.
-    await client.before!(beforeCtx());
-    await client.before!(beforeCtx());
-    await client.after!(afterCtx("0xaaa", vb));
-    await client.response!(responseCtx("0xaaa", true)); // A settles before B even signs
-    await client.after!(afterCtx("0xbbb", vb));
-    await client.response!(responseCtx("0xbbb", true));
+    await client.before(beforeCtx());
+    await client.before(beforeCtx());
+    await client.after(afterCtx("0xaaa", vb));
+    await client.response(responseCtx("0xaaa", true)); // A settles before B even signs
+    await client.after(afterCtx("0xbbb", vb));
+    await client.response(responseCtx("0xbbb", true));
 
     const settled = await store.totalSettled();
     expect(settled).toBe(200_000n); // both settled, nothing dropped
@@ -88,11 +88,11 @@ describe("Finding 1: nonce correlation survives concurrent-identical reordering"
     const { client, store } = install(1_000_000_000, 1_000_000n, true);
     const vb = String(1_000_000 + 20);
     // A signs (goes to nonce map, leaves the reserved queue).
-    await client.before!(beforeCtx());
-    await client.after!(afterCtx("0xaaa", vb));
+    await client.before(beforeCtx());
+    await client.after(afterCtx("0xaaa", vb));
     // B reserves, then B's creation fails pre-sign.
-    await client.before!(beforeCtx());
-    await client.failure!({ ...beforeCtx(), error: new Error("signer down") });
+    await client.before(beforeCtx());
+    await client.failure({ ...beforeCtx(), error: new Error("signer down") });
 
     // A must still hold cap (signed); only B released.
     const committed = await store.committedAmount("p1", "__no_mandate__", 1_000_000, 60_000);
@@ -102,10 +102,10 @@ describe("Finding 1: nonce correlation survives concurrent-identical reordering"
   it("a missing/never-firing response hook does not let a later failure release a live signed hold", async () => {
     const { client, store } = install(1_000_000_000, 1_000_000n, true);
     const vb = String(1_000_000 + 20);
-    await client.before!(beforeCtx());
-    await client.after!(afterCtx("0xaaa", vb)); // A signed, in nonce map (not pending)
-    await client.before!(beforeCtx()); // B reserved
-    await client.failure!({ ...beforeCtx(), error: new Error("B failed") }); // releases B, not A
+    await client.before(beforeCtx());
+    await client.after(afterCtx("0xaaa", vb)); // A signed, in nonce map (not pending)
+    await client.before(beforeCtx()); // B reserved
+    await client.failure({ ...beforeCtx(), error: new Error("B failed") }); // releases B, not A
     const committed = await store.committedAmount("p1", "__no_mandate__", 1_000_000, 60_000);
     expect(committed).toBe(100_000n);
   });
@@ -116,8 +116,8 @@ describe("Finding 2: safeReleaseAt covers the actually-signed validBefore", () =
     const { client } = install(1_000_000_000);
     const reservedAtS = Math.floor(1_000_000_000 / 1000); // 1_000_000
     const tooFar = String(reservedAtS + 20 + 5); // horizon 20, +5 over the +1 tolerance
-    await client.before!(beforeCtx());
-    await expect(client.after!(afterCtx("0xaaa", tooFar))).rejects.toThrow(/diverged/);
+    await client.before(beforeCtx());
+    await expect(client.after(afterCtx("0xaaa", tooFar))).rejects.toThrow(/diverged/);
   });
 
   it("extends safeReleaseAt to the signed validBefore so reconcile cannot release early", async () => {
@@ -125,8 +125,8 @@ describe("Finding 2: safeReleaseAt covers the actually-signed validBefore", () =
     const reservedAtS = Math.floor(1_000_000_000 / 1000);
     // Signing latency: signed validBefore is 1s later than the hook-time horizon.
     const signedVb = reservedAtS + 20 + 1; // within the +1 tolerance, but beyond priced safeReleaseAt
-    await client.before!(beforeCtx());
-    await client.after!(afterCtx("0xaaa", String(signedVb)));
+    await client.before(beforeCtx());
+    await client.after(afterCtx("0xaaa", String(signedVb)));
     // Reservation's safeReleaseAt must now cover signedVb (+margin+skew).
     // Find the reservation via committed (it is signed/pending) then inspect.
     const res = await store.get("r1");

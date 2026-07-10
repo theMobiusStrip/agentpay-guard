@@ -36,20 +36,20 @@ function payload(over: {
 
 describe("replay key derivation", () => {
   it("keys on (token, from, nonce) — not the payment-identifier", () => {
-    const a = extractAuthorization(payload({ paymentIdentifier: "pid-1" }))!;
-    const b = extractAuthorization(payload({ paymentIdentifier: "pid-2" }))!;
+    const a = extractAuthorization(payload({ paymentIdentifier: "pid-1" }));
+    const b = extractAuthorization(payload({ paymentIdentifier: "pid-2" }));
     // Same signed authorization, different client-supplied identifier => same key.
     expect(deriveClaimKey(a.auth, a.token)).toBe(deriveClaimKey(b.auth, b.token));
   });
 
   it("different nonce => different key", () => {
-    const a = extractAuthorization(payload({ nonce: "0x" + "11".repeat(32) }))!;
-    const b = extractAuthorization(payload({ nonce: "0x" + "22".repeat(32) }))!;
+    const a = extractAuthorization(payload({ nonce: "0x" + "11".repeat(32) }));
+    const b = extractAuthorization(payload({ nonce: "0x" + "22".repeat(32) }));
     expect(deriveClaimKey(a.auth, a.token)).not.toBe(deriveClaimKey(b.auth, b.token));
   });
 
   it("EIP-712 digest key binds all fields when domain is known", () => {
-    const a = extractAuthorization(payload({}))!;
+    const a = extractAuthorization(payload({}));
     const domain = { name: "USDC", version: "2", chainId: 84532, verifyingContract: USDC };
     const withDomain = deriveClaimKey(a.auth, a.token, domain);
     expect(withDomain.startsWith("digest:")).toBe(true);

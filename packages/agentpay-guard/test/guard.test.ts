@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { installAgentPayGuard, AgentPayGuard } from "../src/guard.js";
 import { ManualClock } from "../src/clock.js";
 import { InMemoryAtomicStore } from "../src/store/memory.js";
@@ -66,13 +66,13 @@ function install(over: Partial<InstallOptions> = {}) {
 describe("guard: hook wiring + fail-closed", () => {
   it("allows an in-envelope payment (returns void)", async () => {
     const { client } = install();
-    const res = await client.before!(ctx());
+    const res = await client.before(ctx());
     expect(res).toBeUndefined();
   });
 
   it("aborts an out-of-envelope payment with a reason", async () => {
     const { client } = install();
-    const res = await client.before!(ctx(requirements({ scheme: "upto" })));
+    const res = await client.before(ctx(requirements({ scheme: "upto" })));
     expect(res).toEqual({ abort: true, reason: expect.stringContaining("envelope_scheme") });
   });
 
@@ -83,14 +83,14 @@ describe("guard: hook wiring + fail-closed", () => {
         throw new Error("verifier boom");
       },
     });
-    const res = await client.before!(ctx());
+    const res = await client.before(ctx());
     expect(res).toMatchObject({ abort: true });
     expect((res as { reason: string }).reason).toContain("internal error");
   });
 
   it("reservation created on allow is visible in the store", async () => {
     const { client, store } = install();
-    await client.before!(ctx());
+    await client.before(ctx());
     const committed = await store.committedAmount("p1", "__no_mandate__", 1_000_000, 60_000);
     expect(committed).toBe(100_000n);
   });
@@ -111,22 +111,22 @@ describe("guard: TOCTOU (onAfterPaymentCreation)", () => {
 
   it("matching signed payload transitions reserved -> signed", async () => {
     const { client, events } = install();
-    await client.before!(ctx());
-    await client.after!(createdCtx("0xmerchant", "100000"));
+    await client.before(ctx());
+    await client.after(createdCtx("0xmerchant", "100000"));
     expect(events.some((e) => e.kind === "signed")).toBe(true);
   });
 
   it("diverged signed payTo throws to abort the payment", async () => {
     const { client, events } = install();
-    await client.before!(ctx());
-    await expect(client.after!(createdCtx("0xattacker", "100000"))).rejects.toThrow(/diverged/);
+    await client.before(ctx());
+    await expect(client.after(createdCtx("0xattacker", "100000"))).rejects.toThrow(/diverged/);
     expect(events.some((e) => e.kind === "toctou_mismatch")).toBe(true);
   });
 
   it("diverged signed value throws to abort the payment", async () => {
     const { client } = install();
-    await client.before!(ctx());
-    await expect(client.after!(createdCtx("0xmerchant", "999999"))).rejects.toThrow();
+    await client.before(ctx());
+    await expect(client.after(createdCtx("0xmerchant", "999999"))).rejects.toThrow();
   });
 });
 
@@ -135,26 +135,26 @@ describe("guard: lifecycle transitions", () => {
     const { client, store, events } = install({
       resolveDedupContext: () => ({ paymentIdentifier: "pid-1" }),
     });
-    await client.before!(ctx());
-    await client.failure!({ ...ctx(), error: new Error("network down") });
+    await client.before(ctx());
+    await client.failure({ ...ctx(), error: new Error("network down") });
     expect(events.some((e) => e.kind === "released")).toBe(true);
     // Cap freed:
     const committed = await store.committedAmount("p1", "__no_mandate__", 1_000_000, 60_000);
     expect(committed).toBe(0n);
     // Retry with the same payment-identifier is NOT falsely blocked as duplicate:
-    const retry = await client.before!(ctx());
+    const retry = await client.before(ctx());
     expect(retry).toBeUndefined();
   });
 
   it("successful settle transitions to settled and keeps counting in-window", async () => {
     const { client, store, events } = install();
     const nonce = "0x" + "cd".repeat(32);
-    await client.before!(ctx());
-    await client.after!({
+    await client.before(ctx());
+    await client.after({
       ...ctx(),
       paymentPayload: { x402Version: 2, payload: { authorization: { to: "0xmerchant", value: "100000", validBefore: "0", nonce } } },
     });
-    await client.response!({
+    await client.response({
       paymentPayload: { x402Version: 2, payload: { authorization: { to: "0xmerchant", value: "100000", nonce } } },
       requirements: requirements(),
       settleResponse: { success: true, transaction: "0xabc" },
@@ -169,7 +169,7 @@ describe("guard: lifecycle transitions", () => {
 describe("guard: escalate (G3)", () => {
   it("defaults to block (fail-closed) with no handler", async () => {
     const { client } = install({ escalationPolicy: () => true });
-    const res = await client.before!(ctx());
+    const res = await client.before(ctx());
     expect(res).toMatchObject({ abort: true });
     expect((res as { reason: string }).reason).toContain("escalated");
   });
@@ -179,7 +179,7 @@ describe("guard: escalate (G3)", () => {
       escalationPolicy: () => true,
       onEscalate: () => "allow",
     });
-    const res = await client.before!(ctx());
+    const res = await client.before(ctx());
     expect(res).toBeUndefined();
     const committed = await store.committedAmount("p1", "__no_mandate__", 1_000_000, 60_000);
     expect(committed).toBe(100_000n);
@@ -187,7 +187,7 @@ describe("guard: escalate (G3)", () => {
 
   it("escalate + block releases the reservation (no cap held)", async () => {
     const { client, store } = install({ escalationPolicy: () => true, onEscalate: () => "block" });
-    await client.before!(ctx());
+    await client.before(ctx());
     const committed = await store.committedAmount("p1", "__no_mandate__", 1_000_000, 60_000);
     expect(committed).toBe(0n);
   });

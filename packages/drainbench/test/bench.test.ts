@@ -7,7 +7,7 @@ import type { ArmConfig } from "../src/arms.js";
 const DEFAULT: ArmConfig = { cap: 1_000_000n, windowMs: 60_000 };
 
 function cfgFor(id: string): ArmConfig {
-  const f = adversarialFixtures.find((x) => x.id === id)!;
+  const f = adversarialFixtures.find((x) => x.id === id);
   const c: ArmConfig = {
     cap: f.cfg?.cap !== undefined ? BigInt(f.cfg.cap) : DEFAULT.cap,
     windowMs: DEFAULT.windowMs,
@@ -15,7 +15,7 @@ function cfgFor(id: string): ArmConfig {
   if (f.cfg?.perPayeeReservationLimit !== undefined) c.perPayeeReservationLimit = f.cfg.perPayeeReservationLimit;
   return c;
 }
-const fx = (id: string) => adversarialFixtures.find((x) => x.id === id)!;
+const fx = (id: string) => adversarialFixtures.find((x) => x.id === id);
 
 describe("DrainBench deltas (deterministic, reproducible)", () => {
   it("retry-storm: native overspends the cap, the guard holds it", async () => {
@@ -88,8 +88,8 @@ describe("DrainBench deltas (deterministic, reproducible)", () => {
 
   it("simulated-chain reorg: confirmation-depth gating eliminates unpaid service", () => {
     const rows = reorgScenario();
-    const naive = rows.find((r) => r.defense.includes("naive"))!;
-    const gated = rows.find((r) => r.defense.includes("confirmation-depth"))!;
+    const naive = rows.find((r) => r.defense.includes("naive"));
+    const gated = rows.find((r) => r.defense.includes("confirmation-depth"));
     expect(naive.unpaidServiceCost).toBeGreaterThan(0n);
     expect(gated.unpaidServiceCost).toBe(0n);
   });

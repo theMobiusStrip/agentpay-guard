@@ -42,7 +42,7 @@ const policy: Policy = {
 };
 
 const client = new x402Client();
-client.register(BASE_SEPOLIA, new ExactEvmScheme(account as never));
+client.register(BASE_SEPOLIA, new ExactEvmScheme(account));
 
 const guard = installAgentPayGuard(client, {
   policy,

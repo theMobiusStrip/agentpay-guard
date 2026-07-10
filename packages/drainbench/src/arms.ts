@@ -38,7 +38,7 @@ export function payerAddress(): string {
 function makeBaseClient() {
   const account = privateKeyToAccount(PAYER_KEY);
   const client = new x402Client();
-  client.register(BASE_SEPOLIA, new ExactEvmScheme(account as never));
+  client.register(BASE_SEPOLIA, new ExactEvmScheme(account));
   return { client, account };
 }
 

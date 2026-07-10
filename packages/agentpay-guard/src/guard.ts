@@ -103,7 +103,7 @@ function extractSignedAuth(
     | Record<string, unknown>
     | undefined;
   if (!auth || typeof auth !== "object") return undefined;
-  const to = typeof auth["to"] === "string" ? (auth["to"] as string).toLowerCase() : undefined;
+  const to = typeof auth["to"] === "string" ? auth["to"].toLowerCase() : undefined;
   const value =
     typeof auth["value"] === "string" || typeof auth["value"] === "number"
       ? safeBigInt(String(auth["value"]))
@@ -111,7 +111,7 @@ function extractSignedAuth(
   const vb = auth["validBefore"];
   const validBefore =
     typeof vb === "string" || typeof vb === "number" ? Number(vb) : undefined;
-  const nonce = typeof auth["nonce"] === "string" ? (auth["nonce"] as string).toLowerCase() : undefined;
+  const nonce = typeof auth["nonce"] === "string" ? auth["nonce"].toLowerCase() : undefined;
   const out: { to?: string; value?: bigint; validBefore?: number; nonce?: string } = {};
   if (to !== undefined) out.to = to;
   if (value !== undefined && value >= 0n) out.value = value;
