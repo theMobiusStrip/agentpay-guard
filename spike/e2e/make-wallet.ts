@@ -14,9 +14,10 @@ const here = dirname(fileURLToPath(import.meta.url));
 const walletPath = join(here, ".wallet.json");
 
 if (existsSync(walletPath)) {
-  const account = privateKeyToAccount(
-    (await import(walletPath, { with: { type: "json" } })).default.privateKey,
-  );
+  const wallet = (await import(walletPath, { with: { type: "json" } })) as {
+    default: { privateKey: `0x${string}` };
+  };
+  const account = privateKeyToAccount(wallet.default.privateKey);
   console.log(`Existing wallet: ${account.address}`);
   console.log(`(delete ${walletPath} to regenerate)`);
 } else {

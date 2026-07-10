@@ -93,7 +93,7 @@ describe("G3: envelope + adversarial inputs fail closed", () => {
       onAfterPaymentCreation() { return this; },
       onPaymentCreationFailure() { return this; },
     };
-    installAgentPayGuard(client as never, {
+    installAgentPayGuard(client, {
       policy: testPolicy(),
       store,
       principalId: "p1",
@@ -103,20 +103,20 @@ describe("G3: envelope + adversarial inputs fail closed", () => {
 
   it("malformed amount (non-numeric) fails closed", async () => {
     const c = install();
-    const res = await c.before!(ctx(req({ amount: "0x1e240; DROP TABLE" })));
+    const res = await c.before(ctx(req({ amount: "0x1e240; DROP TABLE" })));
     expect(res).toMatchObject({ abort: true });
   });
 
   it("negative/garbage payTo fails closed", async () => {
     const c = install();
-    const res = await c.before!(ctx(req({ payTo: "   " })));
+    const res = await c.before(ctx(req({ payTo: "   " })));
     expect(res).toMatchObject({ abort: true });
     expect((res as { reason: string }).reason).toContain("unresolved");
   });
 
   it("oversized validity horizon is clamped (fails closed)", async () => {
     const c = install();
-    const res = await c.before!(ctx(req({ maxTimeoutSeconds: 99999 })));
+    const res = await c.before(ctx(req({ maxTimeoutSeconds: 99999 })));
     expect(res).toMatchObject({ abort: true });
     expect((res as { reason: string }).reason).toContain("valid_before_too_far");
   });
@@ -132,14 +132,14 @@ describe("G3: envelope + adversarial inputs fail closed", () => {
       committedAmount: async () => 0n,
     };
     const c = install(brokenStore);
-    const res = await c.before!(ctx(req()));
+    const res = await c.before(ctx(req()));
     expect(res).toMatchObject({ abort: true });
     expect((res as { reason: string }).reason).toContain("internal error");
   });
 
   it("unknown scheme fails closed", async () => {
     const c = install();
-    const res = await c.before!(ctx(req({ scheme: "definitely-not-exact" })));
+    const res = await c.before(ctx(req({ scheme: "definitely-not-exact" })));
     expect(res).toMatchObject({ abort: true });
     expect((res as { reason: string }).reason).toContain("envelope_scheme");
   });

@@ -24,7 +24,7 @@ const MERCHANT = "0x1111111111111111111111111111111111111111";
 // ---- Payment proxy (out-of-process from the agent): owns the signer + guard ----
 function makePaymentProxy() {
   const account = privateKeyToAccount(generatePrivateKey());
-  const client = new x402Client().register(BASE_SEPOLIA, new ExactEvmScheme(account as never));
+  const client = new x402Client().register(BASE_SEPOLIA, new ExactEvmScheme(account));
   const policy: Policy = {
     profile: "mandate-required",
     windowMs: 60_000,
@@ -34,7 +34,7 @@ function makePaymentProxy() {
     reorgMarginMs: 2_000,
     maxClockSkewMs: 5_000,
   };
-  installAgentPayGuard(client as never, {
+  installAgentPayGuard(client, {
     policy,
     store: new InMemoryAtomicStore(),
     principalId: `payer:${account.address}`,
@@ -56,7 +56,7 @@ function makePaymentProxy() {
       await (client as never as { createPaymentPayload: (r: unknown) => Promise<unknown> }).createPaymentPayload(req);
       return `paid ${amount} to ${payTo}`;
     } catch (e) {
-      return `BLOCKED: ${e instanceof Error ? e.message.replace("Payment creation aborted: ", "") : e}`;
+      return `BLOCKED: ${e instanceof Error ? e.message.replace("Payment creation aborted: ", "") : String(e)}`;
     }
   };
 }

@@ -38,7 +38,7 @@ export class InMemoryAtomicStore implements AtomicStore {
     let n = 0;
     for (const r of this.reservations.values()) {
       if (
-        (PENDING_STATUSES as readonly ReservationStatus[]).includes(r.status) &&
+        PENDING_STATUSES.includes(r.status) &&
         now >= r.safeReleaseAt
       ) {
         r.status = "expired";
@@ -64,7 +64,7 @@ export class InMemoryAtomicStore implements AtomicStore {
       if (r.principalId !== principalId) continue;
       if (mandateId !== null && r.mandateId !== mandateId) continue;
       if (
-        (PENDING_STATUSES as readonly ReservationStatus[]).includes(r.status)
+        PENDING_STATUSES.includes(r.status)
       ) {
         total += r.amount;
       } else if (
@@ -89,7 +89,7 @@ export class InMemoryAtomicStore implements AtomicStore {
     for (const r of this.reservations.values()) {
       if (r.principalId !== principalId) continue;
       if (r.payTo !== payTo) continue;
-      if ((PENDING_STATUSES as readonly ReservationStatus[]).includes(r.status))
+      if (PENDING_STATUSES.includes(r.status))
         n++;
     }
     return n;

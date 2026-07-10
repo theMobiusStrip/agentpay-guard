@@ -19,3 +19,6 @@ agentpay-guard-PLAN.md
 # Private milestone/process docs
 docs/process/
 docs/deck.md
+
+# Private local leak-term list for .githooks/pre-commit
+.githooks/leak-terms.local

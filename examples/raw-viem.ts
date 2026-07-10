@@ -31,9 +31,9 @@ const policy: Policy = {
 };
 
 const account = privateKeyToAccount(generatePrivateKey());
-const client = new x402Client().register(BASE_SEPOLIA, new ExactEvmScheme(account as never));
+const client = new x402Client().register(BASE_SEPOLIA, new ExactEvmScheme(account));
 
-installAgentPayGuard(client as never, {
+installAgentPayGuard(client, {
   policy,
   store: new InMemoryAtomicStore(),
   principalId: `payer:${account.address}`,
@@ -60,7 +60,7 @@ async function tryPay(label: string, payTo: string, amount: string) {
     await (client as never as { createPaymentPayload: (r: unknown) => Promise<unknown> }).createPaymentPayload(req(payTo, amount));
     console.log("SIGNED ✅");
   } catch (e) {
-    console.log(`BLOCKED ⛔ (${e instanceof Error ? e.message.replace("Payment creation aborted: ", "") : e})`);
+    console.log(`BLOCKED ⛔ (${e instanceof Error ? e.message.replace("Payment creation aborted: ", "") : String(e)})`);
   }
 }
 

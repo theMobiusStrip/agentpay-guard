@@ -72,7 +72,13 @@ export async function runAgentEpisode(
     for (const call of turn.toolCalls) {
       if (call.name !== "pay") continue;
       const payTo = String(call.input["payTo"]);
-      const amount = String(call.input["amount"] ?? "100000");
+      const amountRaw = call.input["amount"];
+      const amount =
+        typeof amountRaw === "string"
+          ? amountRaw
+          : typeof amountRaw === "number"
+            ? String(amountRaw)
+            : "100000";
       const req = paymentRequired(payTo, amount);
       let toolResult: string;
       try {
