@@ -33,6 +33,7 @@ npx tsc -p spike/tsconfig.json                       # typecheck spike
 npx tsc -p packages/drainbench/tsconfig.json --noEmit # typecheck bench harness
 npx tsc -p examples/tsconfig.json                    # typecheck examples
 npx tsc -p bench/tsconfig.json                       # typecheck pinned arm-A
+npm run lint                                         # type-aware eslint, all projects
 npm run -w @agentpay-guard/spike hook-probe          # offline SDK probe (no funds)
 npm run -w @agentpay-guard/drainbench bench          # deterministic A/B -> bench/results/
 npm run -w @agentpay-guard/drainbench agent-demo     # stochastic demonstration
@@ -51,15 +52,27 @@ npx tsc -b \
   && npx tsc -p packages/drainbench/tsconfig.json --noEmit \
   && npx tsc -p examples/tsconfig.json \
   && npx tsc -p bench/tsconfig.json                        # every project, exit 0
+npm run lint                                               # eslint, exit 0
 npx vitest run                                             # full suite, 0 fail
 npm run -w @agentpay-guard/spike hook-probe               # ALL PASS
 npm run -w @agentpay-guard/drainbench bench               # writes bench/results/
 ```
 
-Green = every typecheck exit 0, full vitest pass, probe ALL PASS, DrainBench deltas
-+ benign gate (0 blocks) hold. Touch the custody spine (store/guard/middleware) →
-**G1 stays green**, and drive the affected flow (probe / bench / examples), don't
-trust types alone.
+Green = every typecheck exit 0, lint exit 0, full vitest pass, probe ALL PASS,
+DrainBench deltas + benign gate (0 blocks) hold. Touch the custody spine
+(store/guard/middleware) → **G1 stays green**, and drive the affected flow
+(probe / bench / examples), don't trust types alone.
+
+### Git hooks (once per clone)
+
+```bash
+git config core.hooksPath .githooks
+```
+
+`pre-commit` = leak scan (private paths, home paths, key-shaped hex, emails,
+plus optional personal terms in `.githooks/leak-terms.local`, gitignored).
+`pre-push` = build + `tsc -b` + lint + vitest. CI is authoritative; bypass a
+hook only deliberately (`--no-verify`).
 
 ## Pinned versions (do not bump casually — it is a pre-registration amendment)
 

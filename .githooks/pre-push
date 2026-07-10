@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+# pre-push: fast green subset — build, typecheck, lint, full tests (~30-60s).
+# Probe + bench + the long-tail typechecks run in CI (required check on main).
+# Bypass (deliberate only): git push --no-verify
+set -euo pipefail
+
+echo "[pre-push] npm run build"
+npm run build
+echo "[pre-push] npx tsc -b"
+npx tsc -b
+echo "[pre-push] npm run lint"
+npm run lint
+echo "[pre-push] npx vitest run"
+npx vitest run
+echo "[pre-push] green"

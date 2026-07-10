@@ -1,0 +1,59 @@
+#!/usr/bin/env bash
+# pre-commit: leak scan on staged changes. Public repo — this hook is the local
+# tripwire for private data; CI + review are the backstop. Bypass (deliberate
+# only): git commit --no-verify
+set -euo pipefail
+
+staged=$(git diff --cached --name-only --diff-filter=ACMR)
+[ -z "$staged" ] && exit 0
+
+fail=0
+
+# 1) Private files: never staged, whatever their content.
+bad_paths=$(echo "$staged" | grep -E '(^|/)docs/process/|(^|/)docs/deck\.md$|PLAN\.md$|\.wallet\.json$|leak-terms\.local$' || true)
+env_paths=$(echo "$staged" | grep -E '(^|/)\.env(\..+)?$' | grep -v '\.env\.example$' || true)
+if [ -n "$bad_paths$env_paths" ]; then
+  echo "[pre-commit] BLOCKED — private file(s) staged:" >&2
+  echo "${bad_paths}${bad_paths:+$'\n'}${env_paths}" >&2
+  fail=1
+fi
+
+# 2) Added content: absolute home paths, key-shaped hex, email addresses.
+added=$(git diff --cached -U0 | grep -E '^\+' | grep -vE '^\+\+\+' || true)
+
+if echo "$added" | grep -nE '/(Users|home)/[A-Za-z0-9_-]+' >&2; then
+  echo "[pre-commit] BLOCKED — absolute home path in staged content (use repo-relative paths)." >&2
+  fail=1
+fi
+
+# 64-hex = key-shaped. Allowlist: published well-known dev keys (hardhat/anvil).
+key_hits=$(echo "$added" | grep -oiE '0x[0-9a-f]{64}' \
+  | grep -viE '^0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d$' \
+  | grep -viE '^0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80$' || true)
+if [ -n "$key_hits" ]; then
+  echo "[pre-commit] BLOCKED — key-shaped 64-hex in staged content:" >&2
+  echo "$key_hits" >&2
+  echo "(known-public test keys are allowlisted in .githooks/pre-commit)" >&2
+  fail=1
+fi
+
+email_hits=$(echo "$added" | grep -oE '[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}' \
+  | grep -v 'users\.noreply\.github\.com' | grep -vE '@example\.(com|org)$' || true)
+if [ -n "$email_hits" ]; then
+  echo "[pre-commit] BLOCKED — email address in staged content:" >&2
+  echo "$email_hits" >&2
+  fail=1
+fi
+
+# 3) Optional personal term list (untracked, gitignored): one term per line.
+terms_file="$(git rev-parse --show-toplevel)/.githooks/leak-terms.local"
+if [ -f "$terms_file" ]; then
+  term_hits=$(echo "$added" | grep -inF -f "$terms_file" || true)
+  if [ -n "$term_hits" ]; then
+    echo "[pre-commit] BLOCKED — private term (from leak-terms.local) in staged content:" >&2
+    echo "$term_hits" | head -5 >&2
+    fail=1
+  fi
+fi
+
+exit $fail
