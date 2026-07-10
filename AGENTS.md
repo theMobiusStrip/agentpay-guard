@@ -119,16 +119,21 @@ spots. This is a process check, not a containment boundary.
 
 ## Commit & PR conventions
 
-- **Subject:** imperative mood, ≤50 chars (e.g. `add per-payee reservation limit`).
-- **Body:** only when the *why* isn't obvious from the diff. Wrap at ~72 chars.
+- **Subject:** Conventional Commits — `type(scope): description`, imperative,
+  ≤50 chars (e.g. `fix(store): cap pending holds at any age`). Types: feat, fix,
+  docs, test, refactor, chore, ci. Scope = package/area (store, guard, middleware,
+  drainbench, bench, readme, agents, ci).
+- **Body:** required. Caveman it (style below) — minimum words for the *why*.
+  Wrap at ~72 chars.
 - **No process narrative** in commit/PR text — no conversation context, no cited
   sources, no timings/durations, no prompts, no "as requested". Describe the change
   and its rationale, nothing about how it was produced.
 
 ## Comment & doc style — caveman
 
-Code comments and prose docs use **caveman** compression: drop articles, filler
-(just/really/basically), and hedging; fragments are fine; prefer short synonyms.
+Code comments, prose docs, and commit bodies use **caveman** compression: drop
+articles, filler (just/really/basically), and hedging; fragments are fine; prefer
+short synonyms.
 Keep **exact**: technical terms, identifiers, code blocks, URLs, error strings, and
 numbers. Use **full sentences** where fragment order could mislead — security
 warnings, irreversible-action notes, and multi-step sequences.
