@@ -34,7 +34,7 @@ export function markdownReport(rows: ResultRow[]): string {
       "snippet (see `bench/arm-a/native-hook.ts`). Arm B = native + agentpay-guard. Same " +
       "nominal cap + window. Deterministic fixtures, N=1, conformance pass/fail. All figures " +
       "from the settlement ledger + delivery log — never self-report. `simulated` where a " +
-      "public testnet cannot produce the class (§3).\n",
+      "public testnet cannot produce the class.\n",
   );
   lines.push(
     "> **Atomicity is conditional (honest caveat):** a *synchronous single-process* counter " +
@@ -79,7 +79,7 @@ export function markdownReport(rows: ResultRow[]): string {
 
   // Benign conformance gate.
   const benignBlocks = benign.filter((r) => r.metrics.benignFalseBlock > 0);
-  lines.push("\n## Benign corpus — conformance gate (§4.8)\n");
+  lines.push("\n## Benign corpus — conformance gate\n");
   lines.push(
     `${benign.length} benign cells run (arm B, both profiles). Blocks: **${benignBlocks.length}** ` +
       `(gate = 0). ${benignBlocks.length === 0 ? "PASS — zero false blocks." : "FAIL:"}\n`,

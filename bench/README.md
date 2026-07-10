@@ -16,7 +16,7 @@ npx vitest run packages/drainbench                 # locks the deltas
   Sepolia `eip155:84532`, USDC 6-decimals).
 - **Payer key:** a fixed, well-known, non-secret test key
   (`packages/drainbench/src/arms.ts`), so the payer address is stable. Live runs
-  use a fresh HD account per run + treasury sweep-back (see §4.9 / `spike/e2e`).
+  use a fresh HD account per run + treasury sweep-back (see `spike/e2e`).
 - **Arm A (baseline) config:** a cumulative spending-limit counter with the **same
   nominal cap + window** as arm B (`buildArmA` in `packages/drainbench/src/arms.ts`;
   standalone reference in `bench/arm-a/native-hook.ts`). The x402 docs ship only an
@@ -44,20 +44,20 @@ npx vitest run packages/drainbench                 # locks the deltas
 ## Honest scoping (what this lane is and isn't)
 
 - **Deterministic lane = primary evidence.** N=1 conformance per fixture.
-- **Benign corpus = a conformance GATE, not a rate** (§4.8): reported as blocks /
+- **Benign corpus = a conformance GATE, not a rate**: reported as blocks /
   total with every failure enumerated. A defensible false-block *rate* needs
   pre-registered benign *stochastic* cells (future work).
-- **Stochastic arm = DEMONSTRATION** (§4.4 branch): no live model key here, so the
+- **Stochastic arm = DEMONSTRATION**: no live model key here, so the
   scaffold runs a scripted StubModel. It shows enforcement below the model; it is
   **not** a Wilson-CI result. Set `ANTHROPIC_API_KEY` (+ `BENCH_MODEL`) to run the
   same loop against a live pinned model.
 - **Simulated-chain lane** is labeled *simulated* (reorg/preemption cannot be
-  produced on Base Sepolia's centralized sequencer, §3).
+  produced on Base Sepolia's centralized sequencer).
 - **Overhead** is create-path wall time (dominated by EIP-712 signing), an
   *upper bound* on the guard's own reserve round-trip (in-memory store ops are
   sub-ms). Report it as such.
 - **Held-out external-replication slice** (2605.11781 testbed) collapses to its
   documented fallback — the public artifact is a partial anonymized snapshot that
-  does not map to x402 v2 (G0 spike Q9).
+  does not map to x402 v2.
 - **On-chain settlement** is simulated by an in-memory ledger; the real paid round
   trip is the `spike/e2e` harness (blocked on testnet funding only).

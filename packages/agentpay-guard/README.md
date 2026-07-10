@@ -16,7 +16,7 @@ Everything outside the MVP envelope (`exact` + EIP-3009 + Base Sepolia USDC) fai
 closed. Zero agent-SDK deps in core.
 
 See the repo root `README.md` for the full model and the `docs/` for the threat
-matrix and pre-registration.
+matrix.
 
 ## API
 

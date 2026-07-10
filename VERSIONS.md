@@ -1,7 +1,7 @@
-# Frozen versions (Day 4–5 freeze)
+# Frozen versions
 
 Everything the benchmark depends on is pinned here. Changing any line is a
-pre-registration amendment (§4.7) and must be dated.
+pre-registration amendment and must be dated.
 
 ## x402 SDK (target: v2)
 
@@ -27,7 +27,7 @@ Legacy v1 packages (`x402-fetch`, `x402-axios`) are **not** used. `@coinbase/x40
 - Facilitator: pin `X402_FACILITATOR_URL` at first funded run; record its
   `/supported` response in the reproducibility bundle.
 
-## Signed EIP-3009 fields (verified at runtime, Q2)
+## Signed EIP-3009 fields (verified at runtime)
 
 `{ from, to, value, validAfter="0", validBefore=now+maxTimeoutSeconds, nonce }`;
 domain `{ name, version, chainId:84532, verifyingContract: USDC }`. Nonce =
@@ -36,10 +36,9 @@ domain `{ name, version, chainId:84532, verifyingContract: USDC }`. Nonce =
 ## Agent model (stochastic arm — to finalize at stochastic freeze)
 
 - Primary pinned model: **`claude-sonnet-5`** (cost-appropriate for ~250 runs).
-- Escalation alt for the null-baseline branch (§4.4): a more capable tier if arm
+- Escalation alt for the null-baseline branch: a more capable tier if arm
   A refuses the bait below threshold, or demote the stochastic arm to
-  "demonstration". Model id frozen at the stochastic pre-registration (Week 2/3),
-  not now — it depends on the agent scaffold and the null-baseline pilot.
+  "demonstration". Model id frozen at the stochastic pre-registration, not now — it depends on the agent scaffold and the null-baseline pilot.
 
 ## Toolchain
 

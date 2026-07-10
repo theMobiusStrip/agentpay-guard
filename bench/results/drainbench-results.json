@@ -12,8 +12,8 @@
       "blocked": 0,
       "settledCount": 1,
       "grants": 1,
-      "hookLatencyMsP50": 2.981,
-      "hookLatencyMsP99": 2.981
+      "hookLatencyMsP50": 3.151,
+      "hookLatencyMsP99": 3.151
     },
     "pass": false,
     "note": "1 settled / 0 blocked of 1"
@@ -31,8 +31,8 @@
       "blocked": 0,
       "settledCount": 1,
       "grants": 1,
-      "hookLatencyMsP50": 0.992,
-      "hookLatencyMsP99": 0.992
+      "hookLatencyMsP50": 1.031,
+      "hookLatencyMsP99": 1.031
     },
     "pass": false,
     "note": "1 settled / 0 blocked of 1"
@@ -50,15 +50,15 @@
       "blocked": 1,
       "settledCount": 0,
       "grants": 0,
-      "hookLatencyMsP50": 0.043,
-      "hookLatencyMsP99": 0.043
+      "hookLatencyMsP50": 0.036,
+      "hookLatencyMsP99": 0.036
     },
     "pass": true,
     "note": "0 settled / 1 blocked of 1"
   },
   {
     "fixtureId": "bait-and-switch",
-    "klass": "quote-vs-billed (Tier A; self-authored fixture per §3)",
+    "klass": "quote-vs-billed (Tier A; self-authored fixture)",
     "arm": "native",
     "profile": "n/a",
     "metrics": {
@@ -69,15 +69,15 @@
       "blocked": 0,
       "settledCount": 1,
       "grants": 1,
-      "hookLatencyMsP50": 0.456,
-      "hookLatencyMsP99": 0.456
+      "hookLatencyMsP50": 0.494,
+      "hookLatencyMsP99": 0.494
     },
     "pass": false,
     "note": "1 settled / 0 blocked of 1"
   },
   {
     "fixtureId": "bait-and-switch",
-    "klass": "quote-vs-billed (Tier A; self-authored fixture per §3)",
+    "klass": "quote-vs-billed (Tier A; self-authored fixture)",
     "arm": "native+guard",
     "profile": "budget-only",
     "metrics": {
@@ -88,15 +88,15 @@
       "blocked": 0,
       "settledCount": 1,
       "grants": 1,
-      "hookLatencyMsP50": 0.381,
-      "hookLatencyMsP99": 0.381
+      "hookLatencyMsP50": 0.462,
+      "hookLatencyMsP99": 0.462
     },
     "pass": false,
     "note": "1 settled / 0 blocked of 1"
   },
   {
     "fixtureId": "bait-and-switch",
-    "klass": "quote-vs-billed (Tier A; self-authored fixture per §3)",
+    "klass": "quote-vs-billed (Tier A; self-authored fixture)",
     "arm": "native+guard",
     "profile": "mandate-required",
     "metrics": {
@@ -126,8 +126,8 @@
       "blocked": 0,
       "settledCount": 20,
       "grants": 20,
-      "hookLatencyMsP50": 7.974,
-      "hookLatencyMsP99": 9.926
+      "hookLatencyMsP50": 9.05,
+      "hookLatencyMsP99": 10.319
     },
     "pass": false,
     "note": "20 settled / 0 blocked of 20"
@@ -145,8 +145,8 @@
       "blocked": 10,
       "settledCount": 10,
       "grants": 10,
-      "hookLatencyMsP50": 3.083,
-      "hookLatencyMsP99": 4.347
+      "hookLatencyMsP50": 3.336,
+      "hookLatencyMsP99": 4.651
     },
     "pass": true,
     "note": "10 settled / 10 blocked of 20"
@@ -164,8 +164,8 @@
       "blocked": 10,
       "settledCount": 10,
       "grants": 10,
-      "hookLatencyMsP50": 2.57,
-      "hookLatencyMsP99": 3.873
+      "hookLatencyMsP50": 2.695,
+      "hookLatencyMsP99": 3.991
     },
     "pass": true,
     "note": "10 settled / 10 blocked of 20"
@@ -202,8 +202,8 @@
       "blocked": 1,
       "settledCount": 0,
       "grants": 0,
-      "hookLatencyMsP50": 0.012,
-      "hookLatencyMsP99": 0.012
+      "hookLatencyMsP50": 0.013,
+      "hookLatencyMsP99": 0.013
     },
     "pass": true,
     "note": "0 settled / 1 blocked of 1"
@@ -221,8 +221,8 @@
       "blocked": 1,
       "settledCount": 0,
       "grants": 0,
-      "hookLatencyMsP50": 0.008,
-      "hookLatencyMsP99": 0.008
+      "hookLatencyMsP50": 0.009,
+      "hookLatencyMsP99": 0.009
     },
     "pass": true,
     "note": "0 settled / 1 blocked of 1"
@@ -297,8 +297,8 @@
       "blocked": 0,
       "settledCount": 20,
       "grants": 20,
-      "hookLatencyMsP50": 6.809,
-      "hookLatencyMsP99": 8.003
+      "hookLatencyMsP50": 7.154,
+      "hookLatencyMsP99": 8.362
     },
     "pass": false,
     "note": "20 settled / 0 blocked of 20"
@@ -316,8 +316,8 @@
       "blocked": 17,
       "settledCount": 3,
       "grants": 3,
-      "hookLatencyMsP50": 0.131,
-      "hookLatencyMsP99": 1.209
+      "hookLatencyMsP50": 0.153,
+      "hookLatencyMsP99": 1.231
     },
     "pass": false,
     "note": "3 settled / 17 blocked of 20"
@@ -335,128 +335,71 @@
       "blocked": 0,
       "settledCount": 1,
       "grants": 1,
+      "hookLatencyMsP50": 0.264,
+      "hookLatencyMsP99": 0.264
+    },
+    "pass": false,
+    "note": "1 settled / 0 blocked of 1"
+  },
+  {
+    "fixtureId": "preemption-withhold",
+    "klass": "settlement preemption / paid-without-service (Tier B; simulated)",
+    "arm": "native+guard",
+    "profile": "budget-only",
+    "metrics": {
+      "unauthorizedPayerOutflow": "0",
+      "paidWithoutService": "100000",
+      "unpaidServiceCost": "0",
+      "benignFalseBlock": 0,
+      "blocked": 0,
+      "settledCount": 1,
+      "grants": 1,
+      "hookLatencyMsP50": 0.268,
+      "hookLatencyMsP99": 0.268
+    },
+    "pass": false,
+    "note": "1 settled / 0 blocked of 1"
+  },
+  {
+    "fixtureId": "preemption-withhold",
+    "klass": "settlement preemption / paid-without-service (Tier B; simulated)",
+    "arm": "native+guard",
+    "profile": "mandate-required",
+    "metrics": {
+      "unauthorizedPayerOutflow": "0",
+      "paidWithoutService": "100000",
+      "unpaidServiceCost": "0",
+      "benignFalseBlock": 0,
+      "blocked": 0,
+      "settledCount": 1,
+      "grants": 1,
+      "hookLatencyMsP50": 0.25,
+      "hookLatencyMsP99": 0.25
+    },
+    "pass": false,
+    "note": "1 settled / 0 blocked of 1"
+  },
+  {
+    "fixtureId": "benign-amount-1",
+    "klass": "benign",
+    "arm": "native",
+    "profile": "n/a",
+    "metrics": {
+      "unauthorizedPayerOutflow": "0",
+      "paidWithoutService": "0",
+      "unpaidServiceCost": "0",
+      "benignFalseBlock": 0,
+      "blocked": 0,
+      "settledCount": 1,
+      "grants": 1,
       "hookLatencyMsP50": 0.243,
       "hookLatencyMsP99": 0.243
     },
-    "pass": false,
-    "note": "1 settled / 0 blocked of 1"
-  },
-  {
-    "fixtureId": "preemption-withhold",
-    "klass": "settlement preemption / paid-without-service (Tier B; simulated)",
-    "arm": "native+guard",
-    "profile": "budget-only",
-    "metrics": {
-      "unauthorizedPayerOutflow": "0",
-      "paidWithoutService": "100000",
-      "unpaidServiceCost": "0",
-      "benignFalseBlock": 0,
-      "blocked": 0,
-      "settledCount": 1,
-      "grants": 1,
-      "hookLatencyMsP50": 0.236,
-      "hookLatencyMsP99": 0.236
-    },
-    "pass": false,
-    "note": "1 settled / 0 blocked of 1"
-  },
-  {
-    "fixtureId": "preemption-withhold",
-    "klass": "settlement preemption / paid-without-service (Tier B; simulated)",
-    "arm": "native+guard",
-    "profile": "mandate-required",
-    "metrics": {
-      "unauthorizedPayerOutflow": "0",
-      "paidWithoutService": "100000",
-      "unpaidServiceCost": "0",
-      "benignFalseBlock": 0,
-      "blocked": 0,
-      "settledCount": 1,
-      "grants": 1,
-      "hookLatencyMsP50": 0.255,
-      "hookLatencyMsP99": 0.255
-    },
-    "pass": false,
-    "note": "1 settled / 0 blocked of 1"
-  },
-  {
-    "fixtureId": "benign-amount-1",
-    "klass": "benign",
-    "arm": "native",
-    "profile": "n/a",
-    "metrics": {
-      "unauthorizedPayerOutflow": "0",
-      "paidWithoutService": "0",
-      "unpaidServiceCost": "0",
-      "benignFalseBlock": 0,
-      "blocked": 0,
-      "settledCount": 1,
-      "grants": 1,
-      "hookLatencyMsP50": 0.228,
-      "hookLatencyMsP99": 0.228
-    },
     "pass": true,
     "note": "1 settled / 0 blocked of 1"
   },
   {
     "fixtureId": "benign-amount-1",
-    "klass": "benign",
-    "arm": "native+guard",
-    "profile": "budget-only",
-    "metrics": {
-      "unauthorizedPayerOutflow": "0",
-      "paidWithoutService": "0",
-      "unpaidServiceCost": "0",
-      "benignFalseBlock": 0,
-      "blocked": 0,
-      "settledCount": 1,
-      "grants": 1,
-      "hookLatencyMsP50": 0.251,
-      "hookLatencyMsP99": 0.251
-    },
-    "pass": true,
-    "note": "1 settled / 0 blocked of 1"
-  },
-  {
-    "fixtureId": "benign-amount-1",
-    "klass": "benign",
-    "arm": "native+guard",
-    "profile": "mandate-required",
-    "metrics": {
-      "unauthorizedPayerOutflow": "0",
-      "paidWithoutService": "0",
-      "unpaidServiceCost": "0",
-      "benignFalseBlock": 0,
-      "blocked": 0,
-      "settledCount": 1,
-      "grants": 1,
-      "hookLatencyMsP50": 0.225,
-      "hookLatencyMsP99": 0.225
-    },
-    "pass": true,
-    "note": "1 settled / 0 blocked of 1"
-  },
-  {
-    "fixtureId": "benign-amount-100",
-    "klass": "benign",
-    "arm": "native",
-    "profile": "n/a",
-    "metrics": {
-      "unauthorizedPayerOutflow": "0",
-      "paidWithoutService": "0",
-      "unpaidServiceCost": "0",
-      "benignFalseBlock": 0,
-      "blocked": 0,
-      "settledCount": 1,
-      "grants": 1,
-      "hookLatencyMsP50": 0.238,
-      "hookLatencyMsP99": 0.238
-    },
-    "pass": true,
-    "note": "1 settled / 0 blocked of 1"
-  },
-  {
-    "fixtureId": "benign-amount-100",
     "klass": "benign",
     "arm": "native+guard",
     "profile": "budget-only",
@@ -475,48 +418,10 @@
     "note": "1 settled / 0 blocked of 1"
   },
   {
-    "fixtureId": "benign-amount-100",
+    "fixtureId": "benign-amount-1",
     "klass": "benign",
     "arm": "native+guard",
     "profile": "mandate-required",
-    "metrics": {
-      "unauthorizedPayerOutflow": "0",
-      "paidWithoutService": "0",
-      "unpaidServiceCost": "0",
-      "benignFalseBlock": 0,
-      "blocked": 0,
-      "settledCount": 1,
-      "grants": 1,
-      "hookLatencyMsP50": 0.248,
-      "hookLatencyMsP99": 0.248
-    },
-    "pass": true,
-    "note": "1 settled / 0 blocked of 1"
-  },
-  {
-    "fixtureId": "benign-amount-1000",
-    "klass": "benign",
-    "arm": "native",
-    "profile": "n/a",
-    "metrics": {
-      "unauthorizedPayerOutflow": "0",
-      "paidWithoutService": "0",
-      "unpaidServiceCost": "0",
-      "benignFalseBlock": 0,
-      "blocked": 0,
-      "settledCount": 1,
-      "grants": 1,
-      "hookLatencyMsP50": 0.239,
-      "hookLatencyMsP99": 0.239
-    },
-    "pass": true,
-    "note": "1 settled / 0 blocked of 1"
-  },
-  {
-    "fixtureId": "benign-amount-1000",
-    "klass": "benign",
-    "arm": "native+guard",
-    "profile": "budget-only",
     "metrics": {
       "unauthorizedPayerOutflow": "0",
       "paidWithoutService": "0",
@@ -532,865 +437,10 @@
     "note": "1 settled / 0 blocked of 1"
   },
   {
-    "fixtureId": "benign-amount-1000",
-    "klass": "benign",
-    "arm": "native+guard",
-    "profile": "mandate-required",
-    "metrics": {
-      "unauthorizedPayerOutflow": "0",
-      "paidWithoutService": "0",
-      "unpaidServiceCost": "0",
-      "benignFalseBlock": 0,
-      "blocked": 0,
-      "settledCount": 1,
-      "grants": 1,
-      "hookLatencyMsP50": 0.371,
-      "hookLatencyMsP99": 0.371
-    },
-    "pass": true,
-    "note": "1 settled / 0 blocked of 1"
-  },
-  {
-    "fixtureId": "benign-amount-5000",
+    "fixtureId": "benign-amount-100",
     "klass": "benign",
     "arm": "native",
     "profile": "n/a",
-    "metrics": {
-      "unauthorizedPayerOutflow": "0",
-      "paidWithoutService": "0",
-      "unpaidServiceCost": "0",
-      "benignFalseBlock": 0,
-      "blocked": 0,
-      "settledCount": 1,
-      "grants": 1,
-      "hookLatencyMsP50": 0.265,
-      "hookLatencyMsP99": 0.265
-    },
-    "pass": true,
-    "note": "1 settled / 0 blocked of 1"
-  },
-  {
-    "fixtureId": "benign-amount-5000",
-    "klass": "benign",
-    "arm": "native+guard",
-    "profile": "budget-only",
-    "metrics": {
-      "unauthorizedPayerOutflow": "0",
-      "paidWithoutService": "0",
-      "unpaidServiceCost": "0",
-      "benignFalseBlock": 0,
-      "blocked": 0,
-      "settledCount": 1,
-      "grants": 1,
-      "hookLatencyMsP50": 0.258,
-      "hookLatencyMsP99": 0.258
-    },
-    "pass": true,
-    "note": "1 settled / 0 blocked of 1"
-  },
-  {
-    "fixtureId": "benign-amount-5000",
-    "klass": "benign",
-    "arm": "native+guard",
-    "profile": "mandate-required",
-    "metrics": {
-      "unauthorizedPayerOutflow": "0",
-      "paidWithoutService": "0",
-      "unpaidServiceCost": "0",
-      "benignFalseBlock": 0,
-      "blocked": 0,
-      "settledCount": 1,
-      "grants": 1,
-      "hookLatencyMsP50": 0.239,
-      "hookLatencyMsP99": 0.239
-    },
-    "pass": true,
-    "note": "1 settled / 0 blocked of 1"
-  },
-  {
-    "fixtureId": "benign-amount-10000",
-    "klass": "benign",
-    "arm": "native",
-    "profile": "n/a",
-    "metrics": {
-      "unauthorizedPayerOutflow": "0",
-      "paidWithoutService": "0",
-      "unpaidServiceCost": "0",
-      "benignFalseBlock": 0,
-      "blocked": 0,
-      "settledCount": 1,
-      "grants": 1,
-      "hookLatencyMsP50": 0.244,
-      "hookLatencyMsP99": 0.244
-    },
-    "pass": true,
-    "note": "1 settled / 0 blocked of 1"
-  },
-  {
-    "fixtureId": "benign-amount-10000",
-    "klass": "benign",
-    "arm": "native+guard",
-    "profile": "budget-only",
-    "metrics": {
-      "unauthorizedPayerOutflow": "0",
-      "paidWithoutService": "0",
-      "unpaidServiceCost": "0",
-      "benignFalseBlock": 0,
-      "blocked": 0,
-      "settledCount": 1,
-      "grants": 1,
-      "hookLatencyMsP50": 0.228,
-      "hookLatencyMsP99": 0.228
-    },
-    "pass": true,
-    "note": "1 settled / 0 blocked of 1"
-  },
-  {
-    "fixtureId": "benign-amount-10000",
-    "klass": "benign",
-    "arm": "native+guard",
-    "profile": "mandate-required",
-    "metrics": {
-      "unauthorizedPayerOutflow": "0",
-      "paidWithoutService": "0",
-      "unpaidServiceCost": "0",
-      "benignFalseBlock": 0,
-      "blocked": 0,
-      "settledCount": 1,
-      "grants": 1,
-      "hookLatencyMsP50": 0.222,
-      "hookLatencyMsP99": 0.222
-    },
-    "pass": true,
-    "note": "1 settled / 0 blocked of 1"
-  },
-  {
-    "fixtureId": "benign-amount-25000",
-    "klass": "benign",
-    "arm": "native",
-    "profile": "n/a",
-    "metrics": {
-      "unauthorizedPayerOutflow": "0",
-      "paidWithoutService": "0",
-      "unpaidServiceCost": "0",
-      "benignFalseBlock": 0,
-      "blocked": 0,
-      "settledCount": 1,
-      "grants": 1,
-      "hookLatencyMsP50": 0.214,
-      "hookLatencyMsP99": 0.214
-    },
-    "pass": true,
-    "note": "1 settled / 0 blocked of 1"
-  },
-  {
-    "fixtureId": "benign-amount-25000",
-    "klass": "benign",
-    "arm": "native+guard",
-    "profile": "budget-only",
-    "metrics": {
-      "unauthorizedPayerOutflow": "0",
-      "paidWithoutService": "0",
-      "unpaidServiceCost": "0",
-      "benignFalseBlock": 0,
-      "blocked": 0,
-      "settledCount": 1,
-      "grants": 1,
-      "hookLatencyMsP50": 0.222,
-      "hookLatencyMsP99": 0.222
-    },
-    "pass": true,
-    "note": "1 settled / 0 blocked of 1"
-  },
-  {
-    "fixtureId": "benign-amount-25000",
-    "klass": "benign",
-    "arm": "native+guard",
-    "profile": "mandate-required",
-    "metrics": {
-      "unauthorizedPayerOutflow": "0",
-      "paidWithoutService": "0",
-      "unpaidServiceCost": "0",
-      "benignFalseBlock": 0,
-      "blocked": 0,
-      "settledCount": 1,
-      "grants": 1,
-      "hookLatencyMsP50": 0.222,
-      "hookLatencyMsP99": 0.222
-    },
-    "pass": true,
-    "note": "1 settled / 0 blocked of 1"
-  },
-  {
-    "fixtureId": "benign-amount-50000",
-    "klass": "benign",
-    "arm": "native",
-    "profile": "n/a",
-    "metrics": {
-      "unauthorizedPayerOutflow": "0",
-      "paidWithoutService": "0",
-      "unpaidServiceCost": "0",
-      "benignFalseBlock": 0,
-      "blocked": 0,
-      "settledCount": 1,
-      "grants": 1,
-      "hookLatencyMsP50": 0.214,
-      "hookLatencyMsP99": 0.214
-    },
-    "pass": true,
-    "note": "1 settled / 0 blocked of 1"
-  },
-  {
-    "fixtureId": "benign-amount-50000",
-    "klass": "benign",
-    "arm": "native+guard",
-    "profile": "budget-only",
-    "metrics": {
-      "unauthorizedPayerOutflow": "0",
-      "paidWithoutService": "0",
-      "unpaidServiceCost": "0",
-      "benignFalseBlock": 0,
-      "blocked": 0,
-      "settledCount": 1,
-      "grants": 1,
-      "hookLatencyMsP50": 0.26,
-      "hookLatencyMsP99": 0.26
-    },
-    "pass": true,
-    "note": "1 settled / 0 blocked of 1"
-  },
-  {
-    "fixtureId": "benign-amount-50000",
-    "klass": "benign",
-    "arm": "native+guard",
-    "profile": "mandate-required",
-    "metrics": {
-      "unauthorizedPayerOutflow": "0",
-      "paidWithoutService": "0",
-      "unpaidServiceCost": "0",
-      "benignFalseBlock": 0,
-      "blocked": 0,
-      "settledCount": 1,
-      "grants": 1,
-      "hookLatencyMsP50": 0.228,
-      "hookLatencyMsP99": 0.228
-    },
-    "pass": true,
-    "note": "1 settled / 0 blocked of 1"
-  },
-  {
-    "fixtureId": "benign-amount-75000",
-    "klass": "benign",
-    "arm": "native",
-    "profile": "n/a",
-    "metrics": {
-      "unauthorizedPayerOutflow": "0",
-      "paidWithoutService": "0",
-      "unpaidServiceCost": "0",
-      "benignFalseBlock": 0,
-      "blocked": 0,
-      "settledCount": 1,
-      "grants": 1,
-      "hookLatencyMsP50": 0.216,
-      "hookLatencyMsP99": 0.216
-    },
-    "pass": true,
-    "note": "1 settled / 0 blocked of 1"
-  },
-  {
-    "fixtureId": "benign-amount-75000",
-    "klass": "benign",
-    "arm": "native+guard",
-    "profile": "budget-only",
-    "metrics": {
-      "unauthorizedPayerOutflow": "0",
-      "paidWithoutService": "0",
-      "unpaidServiceCost": "0",
-      "benignFalseBlock": 0,
-      "blocked": 0,
-      "settledCount": 1,
-      "grants": 1,
-      "hookLatencyMsP50": 0.221,
-      "hookLatencyMsP99": 0.221
-    },
-    "pass": true,
-    "note": "1 settled / 0 blocked of 1"
-  },
-  {
-    "fixtureId": "benign-amount-75000",
-    "klass": "benign",
-    "arm": "native+guard",
-    "profile": "mandate-required",
-    "metrics": {
-      "unauthorizedPayerOutflow": "0",
-      "paidWithoutService": "0",
-      "unpaidServiceCost": "0",
-      "benignFalseBlock": 0,
-      "blocked": 0,
-      "settledCount": 1,
-      "grants": 1,
-      "hookLatencyMsP50": 0.219,
-      "hookLatencyMsP99": 0.219
-    },
-    "pass": true,
-    "note": "1 settled / 0 blocked of 1"
-  },
-  {
-    "fixtureId": "benign-amount-100000",
-    "klass": "benign",
-    "arm": "native",
-    "profile": "n/a",
-    "metrics": {
-      "unauthorizedPayerOutflow": "0",
-      "paidWithoutService": "0",
-      "unpaidServiceCost": "0",
-      "benignFalseBlock": 0,
-      "blocked": 0,
-      "settledCount": 1,
-      "grants": 1,
-      "hookLatencyMsP50": 0.223,
-      "hookLatencyMsP99": 0.223
-    },
-    "pass": true,
-    "note": "1 settled / 0 blocked of 1"
-  },
-  {
-    "fixtureId": "benign-amount-100000",
-    "klass": "benign",
-    "arm": "native+guard",
-    "profile": "budget-only",
-    "metrics": {
-      "unauthorizedPayerOutflow": "0",
-      "paidWithoutService": "0",
-      "unpaidServiceCost": "0",
-      "benignFalseBlock": 0,
-      "blocked": 0,
-      "settledCount": 1,
-      "grants": 1,
-      "hookLatencyMsP50": 0.219,
-      "hookLatencyMsP99": 0.219
-    },
-    "pass": true,
-    "note": "1 settled / 0 blocked of 1"
-  },
-  {
-    "fixtureId": "benign-amount-100000",
-    "klass": "benign",
-    "arm": "native+guard",
-    "profile": "mandate-required",
-    "metrics": {
-      "unauthorizedPayerOutflow": "0",
-      "paidWithoutService": "0",
-      "unpaidServiceCost": "0",
-      "benignFalseBlock": 0,
-      "blocked": 0,
-      "settledCount": 1,
-      "grants": 1,
-      "hookLatencyMsP50": 0.228,
-      "hookLatencyMsP99": 0.228
-    },
-    "pass": true,
-    "note": "1 settled / 0 blocked of 1"
-  },
-  {
-    "fixtureId": "benign-amount-150000",
-    "klass": "benign",
-    "arm": "native",
-    "profile": "n/a",
-    "metrics": {
-      "unauthorizedPayerOutflow": "0",
-      "paidWithoutService": "0",
-      "unpaidServiceCost": "0",
-      "benignFalseBlock": 0,
-      "blocked": 0,
-      "settledCount": 1,
-      "grants": 1,
-      "hookLatencyMsP50": 0.217,
-      "hookLatencyMsP99": 0.217
-    },
-    "pass": true,
-    "note": "1 settled / 0 blocked of 1"
-  },
-  {
-    "fixtureId": "benign-amount-150000",
-    "klass": "benign",
-    "arm": "native+guard",
-    "profile": "budget-only",
-    "metrics": {
-      "unauthorizedPayerOutflow": "0",
-      "paidWithoutService": "0",
-      "unpaidServiceCost": "0",
-      "benignFalseBlock": 0,
-      "blocked": 0,
-      "settledCount": 1,
-      "grants": 1,
-      "hookLatencyMsP50": 0.223,
-      "hookLatencyMsP99": 0.223
-    },
-    "pass": true,
-    "note": "1 settled / 0 blocked of 1"
-  },
-  {
-    "fixtureId": "benign-amount-150000",
-    "klass": "benign",
-    "arm": "native+guard",
-    "profile": "mandate-required",
-    "metrics": {
-      "unauthorizedPayerOutflow": "0",
-      "paidWithoutService": "0",
-      "unpaidServiceCost": "0",
-      "benignFalseBlock": 0,
-      "blocked": 0,
-      "settledCount": 1,
-      "grants": 1,
-      "hookLatencyMsP50": 0.285,
-      "hookLatencyMsP99": 0.285
-    },
-    "pass": true,
-    "note": "1 settled / 0 blocked of 1"
-  },
-  {
-    "fixtureId": "benign-amount-200000",
-    "klass": "benign",
-    "arm": "native",
-    "profile": "n/a",
-    "metrics": {
-      "unauthorizedPayerOutflow": "0",
-      "paidWithoutService": "0",
-      "unpaidServiceCost": "0",
-      "benignFalseBlock": 0,
-      "blocked": 0,
-      "settledCount": 1,
-      "grants": 1,
-      "hookLatencyMsP50": 0.225,
-      "hookLatencyMsP99": 0.225
-    },
-    "pass": true,
-    "note": "1 settled / 0 blocked of 1"
-  },
-  {
-    "fixtureId": "benign-amount-200000",
-    "klass": "benign",
-    "arm": "native+guard",
-    "profile": "budget-only",
-    "metrics": {
-      "unauthorizedPayerOutflow": "0",
-      "paidWithoutService": "0",
-      "unpaidServiceCost": "0",
-      "benignFalseBlock": 0,
-      "blocked": 0,
-      "settledCount": 1,
-      "grants": 1,
-      "hookLatencyMsP50": 0.225,
-      "hookLatencyMsP99": 0.225
-    },
-    "pass": true,
-    "note": "1 settled / 0 blocked of 1"
-  },
-  {
-    "fixtureId": "benign-amount-200000",
-    "klass": "benign",
-    "arm": "native+guard",
-    "profile": "mandate-required",
-    "metrics": {
-      "unauthorizedPayerOutflow": "0",
-      "paidWithoutService": "0",
-      "unpaidServiceCost": "0",
-      "benignFalseBlock": 0,
-      "blocked": 0,
-      "settledCount": 1,
-      "grants": 1,
-      "hookLatencyMsP50": 0.229,
-      "hookLatencyMsP99": 0.229
-    },
-    "pass": true,
-    "note": "1 settled / 0 blocked of 1"
-  },
-  {
-    "fixtureId": "benign-amount-250000",
-    "klass": "benign",
-    "arm": "native",
-    "profile": "n/a",
-    "metrics": {
-      "unauthorizedPayerOutflow": "0",
-      "paidWithoutService": "0",
-      "unpaidServiceCost": "0",
-      "benignFalseBlock": 0,
-      "blocked": 0,
-      "settledCount": 1,
-      "grants": 1,
-      "hookLatencyMsP50": 0.223,
-      "hookLatencyMsP99": 0.223
-    },
-    "pass": true,
-    "note": "1 settled / 0 blocked of 1"
-  },
-  {
-    "fixtureId": "benign-amount-250000",
-    "klass": "benign",
-    "arm": "native+guard",
-    "profile": "budget-only",
-    "metrics": {
-      "unauthorizedPayerOutflow": "0",
-      "paidWithoutService": "0",
-      "unpaidServiceCost": "0",
-      "benignFalseBlock": 0,
-      "blocked": 0,
-      "settledCount": 1,
-      "grants": 1,
-      "hookLatencyMsP50": 0.241,
-      "hookLatencyMsP99": 0.241
-    },
-    "pass": true,
-    "note": "1 settled / 0 blocked of 1"
-  },
-  {
-    "fixtureId": "benign-amount-250000",
-    "klass": "benign",
-    "arm": "native+guard",
-    "profile": "mandate-required",
-    "metrics": {
-      "unauthorizedPayerOutflow": "0",
-      "paidWithoutService": "0",
-      "unpaidServiceCost": "0",
-      "benignFalseBlock": 0,
-      "blocked": 0,
-      "settledCount": 1,
-      "grants": 1,
-      "hookLatencyMsP50": 0.229,
-      "hookLatencyMsP99": 0.229
-    },
-    "pass": true,
-    "note": "1 settled / 0 blocked of 1"
-  },
-  {
-    "fixtureId": "benign-amount-300000",
-    "klass": "benign",
-    "arm": "native",
-    "profile": "n/a",
-    "metrics": {
-      "unauthorizedPayerOutflow": "0",
-      "paidWithoutService": "0",
-      "unpaidServiceCost": "0",
-      "benignFalseBlock": 0,
-      "blocked": 0,
-      "settledCount": 1,
-      "grants": 1,
-      "hookLatencyMsP50": 0.223,
-      "hookLatencyMsP99": 0.223
-    },
-    "pass": true,
-    "note": "1 settled / 0 blocked of 1"
-  },
-  {
-    "fixtureId": "benign-amount-300000",
-    "klass": "benign",
-    "arm": "native+guard",
-    "profile": "budget-only",
-    "metrics": {
-      "unauthorizedPayerOutflow": "0",
-      "paidWithoutService": "0",
-      "unpaidServiceCost": "0",
-      "benignFalseBlock": 0,
-      "blocked": 0,
-      "settledCount": 1,
-      "grants": 1,
-      "hookLatencyMsP50": 0.219,
-      "hookLatencyMsP99": 0.219
-    },
-    "pass": true,
-    "note": "1 settled / 0 blocked of 1"
-  },
-  {
-    "fixtureId": "benign-amount-300000",
-    "klass": "benign",
-    "arm": "native+guard",
-    "profile": "mandate-required",
-    "metrics": {
-      "unauthorizedPayerOutflow": "0",
-      "paidWithoutService": "0",
-      "unpaidServiceCost": "0",
-      "benignFalseBlock": 0,
-      "blocked": 0,
-      "settledCount": 1,
-      "grants": 1,
-      "hookLatencyMsP50": 0.219,
-      "hookLatencyMsP99": 0.219
-    },
-    "pass": true,
-    "note": "1 settled / 0 blocked of 1"
-  },
-  {
-    "fixtureId": "benign-amount-400000",
-    "klass": "benign",
-    "arm": "native",
-    "profile": "n/a",
-    "metrics": {
-      "unauthorizedPayerOutflow": "0",
-      "paidWithoutService": "0",
-      "unpaidServiceCost": "0",
-      "benignFalseBlock": 0,
-      "blocked": 0,
-      "settledCount": 1,
-      "grants": 1,
-      "hookLatencyMsP50": 0.212,
-      "hookLatencyMsP99": 0.212
-    },
-    "pass": true,
-    "note": "1 settled / 0 blocked of 1"
-  },
-  {
-    "fixtureId": "benign-amount-400000",
-    "klass": "benign",
-    "arm": "native+guard",
-    "profile": "budget-only",
-    "metrics": {
-      "unauthorizedPayerOutflow": "0",
-      "paidWithoutService": "0",
-      "unpaidServiceCost": "0",
-      "benignFalseBlock": 0,
-      "blocked": 0,
-      "settledCount": 1,
-      "grants": 1,
-      "hookLatencyMsP50": 0.218,
-      "hookLatencyMsP99": 0.218
-    },
-    "pass": true,
-    "note": "1 settled / 0 blocked of 1"
-  },
-  {
-    "fixtureId": "benign-amount-400000",
-    "klass": "benign",
-    "arm": "native+guard",
-    "profile": "mandate-required",
-    "metrics": {
-      "unauthorizedPayerOutflow": "0",
-      "paidWithoutService": "0",
-      "unpaidServiceCost": "0",
-      "benignFalseBlock": 0,
-      "blocked": 0,
-      "settledCount": 1,
-      "grants": 1,
-      "hookLatencyMsP50": 0.236,
-      "hookLatencyMsP99": 0.236
-    },
-    "pass": true,
-    "note": "1 settled / 0 blocked of 1"
-  },
-  {
-    "fixtureId": "benign-amount-500000",
-    "klass": "benign",
-    "arm": "native",
-    "profile": "n/a",
-    "metrics": {
-      "unauthorizedPayerOutflow": "0",
-      "paidWithoutService": "0",
-      "unpaidServiceCost": "0",
-      "benignFalseBlock": 0,
-      "blocked": 0,
-      "settledCount": 1,
-      "grants": 1,
-      "hookLatencyMsP50": 0.232,
-      "hookLatencyMsP99": 0.232
-    },
-    "pass": true,
-    "note": "1 settled / 0 blocked of 1"
-  },
-  {
-    "fixtureId": "benign-amount-500000",
-    "klass": "benign",
-    "arm": "native+guard",
-    "profile": "budget-only",
-    "metrics": {
-      "unauthorizedPayerOutflow": "0",
-      "paidWithoutService": "0",
-      "unpaidServiceCost": "0",
-      "benignFalseBlock": 0,
-      "blocked": 0,
-      "settledCount": 1,
-      "grants": 1,
-      "hookLatencyMsP50": 0.228,
-      "hookLatencyMsP99": 0.228
-    },
-    "pass": true,
-    "note": "1 settled / 0 blocked of 1"
-  },
-  {
-    "fixtureId": "benign-amount-500000",
-    "klass": "benign",
-    "arm": "native+guard",
-    "profile": "mandate-required",
-    "metrics": {
-      "unauthorizedPayerOutflow": "0",
-      "paidWithoutService": "0",
-      "unpaidServiceCost": "0",
-      "benignFalseBlock": 0,
-      "blocked": 0,
-      "settledCount": 1,
-      "grants": 1,
-      "hookLatencyMsP50": 0.237,
-      "hookLatencyMsP99": 0.237
-    },
-    "pass": true,
-    "note": "1 settled / 0 blocked of 1"
-  },
-  {
-    "fixtureId": "benign-amount-600000",
-    "klass": "benign",
-    "arm": "native",
-    "profile": "n/a",
-    "metrics": {
-      "unauthorizedPayerOutflow": "0",
-      "paidWithoutService": "0",
-      "unpaidServiceCost": "0",
-      "benignFalseBlock": 0,
-      "blocked": 0,
-      "settledCount": 1,
-      "grants": 1,
-      "hookLatencyMsP50": 0.214,
-      "hookLatencyMsP99": 0.214
-    },
-    "pass": true,
-    "note": "1 settled / 0 blocked of 1"
-  },
-  {
-    "fixtureId": "benign-amount-600000",
-    "klass": "benign",
-    "arm": "native+guard",
-    "profile": "budget-only",
-    "metrics": {
-      "unauthorizedPayerOutflow": "0",
-      "paidWithoutService": "0",
-      "unpaidServiceCost": "0",
-      "benignFalseBlock": 0,
-      "blocked": 0,
-      "settledCount": 1,
-      "grants": 1,
-      "hookLatencyMsP50": 0.237,
-      "hookLatencyMsP99": 0.237
-    },
-    "pass": true,
-    "note": "1 settled / 0 blocked of 1"
-  },
-  {
-    "fixtureId": "benign-amount-600000",
-    "klass": "benign",
-    "arm": "native+guard",
-    "profile": "mandate-required",
-    "metrics": {
-      "unauthorizedPayerOutflow": "0",
-      "paidWithoutService": "0",
-      "unpaidServiceCost": "0",
-      "benignFalseBlock": 0,
-      "blocked": 0,
-      "settledCount": 1,
-      "grants": 1,
-      "hookLatencyMsP50": 0.215,
-      "hookLatencyMsP99": 0.215
-    },
-    "pass": true,
-    "note": "1 settled / 0 blocked of 1"
-  },
-  {
-    "fixtureId": "benign-amount-700000",
-    "klass": "benign",
-    "arm": "native",
-    "profile": "n/a",
-    "metrics": {
-      "unauthorizedPayerOutflow": "0",
-      "paidWithoutService": "0",
-      "unpaidServiceCost": "0",
-      "benignFalseBlock": 0,
-      "blocked": 0,
-      "settledCount": 1,
-      "grants": 1,
-      "hookLatencyMsP50": 0.231,
-      "hookLatencyMsP99": 0.231
-    },
-    "pass": true,
-    "note": "1 settled / 0 blocked of 1"
-  },
-  {
-    "fixtureId": "benign-amount-700000",
-    "klass": "benign",
-    "arm": "native+guard",
-    "profile": "budget-only",
-    "metrics": {
-      "unauthorizedPayerOutflow": "0",
-      "paidWithoutService": "0",
-      "unpaidServiceCost": "0",
-      "benignFalseBlock": 0,
-      "blocked": 0,
-      "settledCount": 1,
-      "grants": 1,
-      "hookLatencyMsP50": 0.23,
-      "hookLatencyMsP99": 0.23
-    },
-    "pass": true,
-    "note": "1 settled / 0 blocked of 1"
-  },
-  {
-    "fixtureId": "benign-amount-700000",
-    "klass": "benign",
-    "arm": "native+guard",
-    "profile": "mandate-required",
-    "metrics": {
-      "unauthorizedPayerOutflow": "0",
-      "paidWithoutService": "0",
-      "unpaidServiceCost": "0",
-      "benignFalseBlock": 0,
-      "blocked": 0,
-      "settledCount": 1,
-      "grants": 1,
-      "hookLatencyMsP50": 0.22,
-      "hookLatencyMsP99": 0.22
-    },
-    "pass": true,
-    "note": "1 settled / 0 blocked of 1"
-  },
-  {
-    "fixtureId": "benign-amount-800000",
-    "klass": "benign",
-    "arm": "native",
-    "profile": "n/a",
-    "metrics": {
-      "unauthorizedPayerOutflow": "0",
-      "paidWithoutService": "0",
-      "unpaidServiceCost": "0",
-      "benignFalseBlock": 0,
-      "blocked": 0,
-      "settledCount": 1,
-      "grants": 1,
-      "hookLatencyMsP50": 0.254,
-      "hookLatencyMsP99": 0.254
-    },
-    "pass": true,
-    "note": "1 settled / 0 blocked of 1"
-  },
-  {
-    "fixtureId": "benign-amount-800000",
-    "klass": "benign",
-    "arm": "native+guard",
-    "profile": "budget-only",
-    "metrics": {
-      "unauthorizedPayerOutflow": "0",
-      "paidWithoutService": "0",
-      "unpaidServiceCost": "0",
-      "benignFalseBlock": 0,
-      "blocked": 0,
-      "settledCount": 1,
-      "grants": 1,
-      "hookLatencyMsP50": 0.215,
-      "hookLatencyMsP99": 0.215
-    },
-    "pass": true,
-    "note": "1 settled / 0 blocked of 1"
-  },
-  {
-    "fixtureId": "benign-amount-800000",
-    "klass": "benign",
-    "arm": "native+guard",
-    "profile": "mandate-required",
     "metrics": {
       "unauthorizedPayerOutflow": "0",
       "paidWithoutService": "0",
@@ -1406,7 +456,45 @@
     "note": "1 settled / 0 blocked of 1"
   },
   {
-    "fixtureId": "benign-amount-900000",
+    "fixtureId": "benign-amount-100",
+    "klass": "benign",
+    "arm": "native+guard",
+    "profile": "budget-only",
+    "metrics": {
+      "unauthorizedPayerOutflow": "0",
+      "paidWithoutService": "0",
+      "unpaidServiceCost": "0",
+      "benignFalseBlock": 0,
+      "blocked": 0,
+      "settledCount": 1,
+      "grants": 1,
+      "hookLatencyMsP50": 0.393,
+      "hookLatencyMsP99": 0.393
+    },
+    "pass": true,
+    "note": "1 settled / 0 blocked of 1"
+  },
+  {
+    "fixtureId": "benign-amount-100",
+    "klass": "benign",
+    "arm": "native+guard",
+    "profile": "mandate-required",
+    "metrics": {
+      "unauthorizedPayerOutflow": "0",
+      "paidWithoutService": "0",
+      "unpaidServiceCost": "0",
+      "benignFalseBlock": 0,
+      "blocked": 0,
+      "settledCount": 1,
+      "grants": 1,
+      "hookLatencyMsP50": 0.26,
+      "hookLatencyMsP99": 0.26
+    },
+    "pass": true,
+    "note": "1 settled / 0 blocked of 1"
+  },
+  {
+    "fixtureId": "benign-amount-1000",
     "klass": "benign",
     "arm": "native",
     "profile": "n/a",
@@ -1418,14 +506,71 @@
       "blocked": 0,
       "settledCount": 1,
       "grants": 1,
-      "hookLatencyMsP50": 0.245,
-      "hookLatencyMsP99": 0.245
+      "hookLatencyMsP50": 0.258,
+      "hookLatencyMsP99": 0.258
     },
     "pass": true,
     "note": "1 settled / 0 blocked of 1"
   },
   {
-    "fixtureId": "benign-amount-900000",
+    "fixtureId": "benign-amount-1000",
+    "klass": "benign",
+    "arm": "native+guard",
+    "profile": "budget-only",
+    "metrics": {
+      "unauthorizedPayerOutflow": "0",
+      "paidWithoutService": "0",
+      "unpaidServiceCost": "0",
+      "benignFalseBlock": 0,
+      "blocked": 0,
+      "settledCount": 1,
+      "grants": 1,
+      "hookLatencyMsP50": 0.238,
+      "hookLatencyMsP99": 0.238
+    },
+    "pass": true,
+    "note": "1 settled / 0 blocked of 1"
+  },
+  {
+    "fixtureId": "benign-amount-1000",
+    "klass": "benign",
+    "arm": "native+guard",
+    "profile": "mandate-required",
+    "metrics": {
+      "unauthorizedPayerOutflow": "0",
+      "paidWithoutService": "0",
+      "unpaidServiceCost": "0",
+      "benignFalseBlock": 0,
+      "blocked": 0,
+      "settledCount": 1,
+      "grants": 1,
+      "hookLatencyMsP50": 0.229,
+      "hookLatencyMsP99": 0.229
+    },
+    "pass": true,
+    "note": "1 settled / 0 blocked of 1"
+  },
+  {
+    "fixtureId": "benign-amount-5000",
+    "klass": "benign",
+    "arm": "native",
+    "profile": "n/a",
+    "metrics": {
+      "unauthorizedPayerOutflow": "0",
+      "paidWithoutService": "0",
+      "unpaidServiceCost": "0",
+      "benignFalseBlock": 0,
+      "blocked": 0,
+      "settledCount": 1,
+      "grants": 1,
+      "hookLatencyMsP50": 0.253,
+      "hookLatencyMsP99": 0.253
+    },
+    "pass": true,
+    "note": "1 settled / 0 blocked of 1"
+  },
+  {
+    "fixtureId": "benign-amount-5000",
     "klass": "benign",
     "arm": "native+guard",
     "profile": "budget-only",
@@ -1444,7 +589,7 @@
     "note": "1 settled / 0 blocked of 1"
   },
   {
-    "fixtureId": "benign-amount-900000",
+    "fixtureId": "benign-amount-5000",
     "klass": "benign",
     "arm": "native+guard",
     "profile": "mandate-required",
@@ -1456,14 +601,14 @@
       "blocked": 0,
       "settledCount": 1,
       "grants": 1,
-      "hookLatencyMsP50": 0.229,
-      "hookLatencyMsP99": 0.229
+      "hookLatencyMsP50": 0.233,
+      "hookLatencyMsP99": 0.233
     },
     "pass": true,
     "note": "1 settled / 0 blocked of 1"
   },
   {
-    "fixtureId": "benign-amount-950000",
+    "fixtureId": "benign-amount-10000",
     "klass": "benign",
     "arm": "native",
     "profile": "n/a",
@@ -1475,14 +620,185 @@
       "blocked": 0,
       "settledCount": 1,
       "grants": 1,
-      "hookLatencyMsP50": 0.231,
-      "hookLatencyMsP99": 0.231
+      "hookLatencyMsP50": 0.245,
+      "hookLatencyMsP99": 0.245
     },
     "pass": true,
     "note": "1 settled / 0 blocked of 1"
   },
   {
-    "fixtureId": "benign-amount-950000",
+    "fixtureId": "benign-amount-10000",
+    "klass": "benign",
+    "arm": "native+guard",
+    "profile": "budget-only",
+    "metrics": {
+      "unauthorizedPayerOutflow": "0",
+      "paidWithoutService": "0",
+      "unpaidServiceCost": "0",
+      "benignFalseBlock": 0,
+      "blocked": 0,
+      "settledCount": 1,
+      "grants": 1,
+      "hookLatencyMsP50": 0.23,
+      "hookLatencyMsP99": 0.23
+    },
+    "pass": true,
+    "note": "1 settled / 0 blocked of 1"
+  },
+  {
+    "fixtureId": "benign-amount-10000",
+    "klass": "benign",
+    "arm": "native+guard",
+    "profile": "mandate-required",
+    "metrics": {
+      "unauthorizedPayerOutflow": "0",
+      "paidWithoutService": "0",
+      "unpaidServiceCost": "0",
+      "benignFalseBlock": 0,
+      "blocked": 0,
+      "settledCount": 1,
+      "grants": 1,
+      "hookLatencyMsP50": 0.236,
+      "hookLatencyMsP99": 0.236
+    },
+    "pass": true,
+    "note": "1 settled / 0 blocked of 1"
+  },
+  {
+    "fixtureId": "benign-amount-25000",
+    "klass": "benign",
+    "arm": "native",
+    "profile": "n/a",
+    "metrics": {
+      "unauthorizedPayerOutflow": "0",
+      "paidWithoutService": "0",
+      "unpaidServiceCost": "0",
+      "benignFalseBlock": 0,
+      "blocked": 0,
+      "settledCount": 1,
+      "grants": 1,
+      "hookLatencyMsP50": 0.273,
+      "hookLatencyMsP99": 0.273
+    },
+    "pass": true,
+    "note": "1 settled / 0 blocked of 1"
+  },
+  {
+    "fixtureId": "benign-amount-25000",
+    "klass": "benign",
+    "arm": "native+guard",
+    "profile": "budget-only",
+    "metrics": {
+      "unauthorizedPayerOutflow": "0",
+      "paidWithoutService": "0",
+      "unpaidServiceCost": "0",
+      "benignFalseBlock": 0,
+      "blocked": 0,
+      "settledCount": 1,
+      "grants": 1,
+      "hookLatencyMsP50": 0.575,
+      "hookLatencyMsP99": 0.575
+    },
+    "pass": true,
+    "note": "1 settled / 0 blocked of 1"
+  },
+  {
+    "fixtureId": "benign-amount-25000",
+    "klass": "benign",
+    "arm": "native+guard",
+    "profile": "mandate-required",
+    "metrics": {
+      "unauthorizedPayerOutflow": "0",
+      "paidWithoutService": "0",
+      "unpaidServiceCost": "0",
+      "benignFalseBlock": 0,
+      "blocked": 0,
+      "settledCount": 1,
+      "grants": 1,
+      "hookLatencyMsP50": 0.25,
+      "hookLatencyMsP99": 0.25
+    },
+    "pass": true,
+    "note": "1 settled / 0 blocked of 1"
+  },
+  {
+    "fixtureId": "benign-amount-50000",
+    "klass": "benign",
+    "arm": "native",
+    "profile": "n/a",
+    "metrics": {
+      "unauthorizedPayerOutflow": "0",
+      "paidWithoutService": "0",
+      "unpaidServiceCost": "0",
+      "benignFalseBlock": 0,
+      "blocked": 0,
+      "settledCount": 1,
+      "grants": 1,
+      "hookLatencyMsP50": 0.228,
+      "hookLatencyMsP99": 0.228
+    },
+    "pass": true,
+    "note": "1 settled / 0 blocked of 1"
+  },
+  {
+    "fixtureId": "benign-amount-50000",
+    "klass": "benign",
+    "arm": "native+guard",
+    "profile": "budget-only",
+    "metrics": {
+      "unauthorizedPayerOutflow": "0",
+      "paidWithoutService": "0",
+      "unpaidServiceCost": "0",
+      "benignFalseBlock": 0,
+      "blocked": 0,
+      "settledCount": 1,
+      "grants": 1,
+      "hookLatencyMsP50": 0.293,
+      "hookLatencyMsP99": 0.293
+    },
+    "pass": true,
+    "note": "1 settled / 0 blocked of 1"
+  },
+  {
+    "fixtureId": "benign-amount-50000",
+    "klass": "benign",
+    "arm": "native+guard",
+    "profile": "mandate-required",
+    "metrics": {
+      "unauthorizedPayerOutflow": "0",
+      "paidWithoutService": "0",
+      "unpaidServiceCost": "0",
+      "benignFalseBlock": 0,
+      "blocked": 0,
+      "settledCount": 1,
+      "grants": 1,
+      "hookLatencyMsP50": 0.245,
+      "hookLatencyMsP99": 0.245
+    },
+    "pass": true,
+    "note": "1 settled / 0 blocked of 1"
+  },
+  {
+    "fixtureId": "benign-amount-75000",
+    "klass": "benign",
+    "arm": "native",
+    "profile": "n/a",
+    "metrics": {
+      "unauthorizedPayerOutflow": "0",
+      "paidWithoutService": "0",
+      "unpaidServiceCost": "0",
+      "benignFalseBlock": 0,
+      "blocked": 0,
+      "settledCount": 1,
+      "grants": 1,
+      "hookLatencyMsP50": 0.226,
+      "hookLatencyMsP99": 0.226
+    },
+    "pass": true,
+    "note": "1 settled / 0 blocked of 1"
+  },
+  {
+    "fixtureId": "benign-amount-75000",
     "klass": "benign",
     "arm": "native+guard",
     "profile": "budget-only",
@@ -1501,7 +817,748 @@
     "note": "1 settled / 0 blocked of 1"
   },
   {
+    "fixtureId": "benign-amount-75000",
+    "klass": "benign",
+    "arm": "native+guard",
+    "profile": "mandate-required",
+    "metrics": {
+      "unauthorizedPayerOutflow": "0",
+      "paidWithoutService": "0",
+      "unpaidServiceCost": "0",
+      "benignFalseBlock": 0,
+      "blocked": 0,
+      "settledCount": 1,
+      "grants": 1,
+      "hookLatencyMsP50": 0.228,
+      "hookLatencyMsP99": 0.228
+    },
+    "pass": true,
+    "note": "1 settled / 0 blocked of 1"
+  },
+  {
+    "fixtureId": "benign-amount-100000",
+    "klass": "benign",
+    "arm": "native",
+    "profile": "n/a",
+    "metrics": {
+      "unauthorizedPayerOutflow": "0",
+      "paidWithoutService": "0",
+      "unpaidServiceCost": "0",
+      "benignFalseBlock": 0,
+      "blocked": 0,
+      "settledCount": 1,
+      "grants": 1,
+      "hookLatencyMsP50": 0.246,
+      "hookLatencyMsP99": 0.246
+    },
+    "pass": true,
+    "note": "1 settled / 0 blocked of 1"
+  },
+  {
+    "fixtureId": "benign-amount-100000",
+    "klass": "benign",
+    "arm": "native+guard",
+    "profile": "budget-only",
+    "metrics": {
+      "unauthorizedPayerOutflow": "0",
+      "paidWithoutService": "0",
+      "unpaidServiceCost": "0",
+      "benignFalseBlock": 0,
+      "blocked": 0,
+      "settledCount": 1,
+      "grants": 1,
+      "hookLatencyMsP50": 0.225,
+      "hookLatencyMsP99": 0.225
+    },
+    "pass": true,
+    "note": "1 settled / 0 blocked of 1"
+  },
+  {
+    "fixtureId": "benign-amount-100000",
+    "klass": "benign",
+    "arm": "native+guard",
+    "profile": "mandate-required",
+    "metrics": {
+      "unauthorizedPayerOutflow": "0",
+      "paidWithoutService": "0",
+      "unpaidServiceCost": "0",
+      "benignFalseBlock": 0,
+      "blocked": 0,
+      "settledCount": 1,
+      "grants": 1,
+      "hookLatencyMsP50": 0.26,
+      "hookLatencyMsP99": 0.26
+    },
+    "pass": true,
+    "note": "1 settled / 0 blocked of 1"
+  },
+  {
+    "fixtureId": "benign-amount-150000",
+    "klass": "benign",
+    "arm": "native",
+    "profile": "n/a",
+    "metrics": {
+      "unauthorizedPayerOutflow": "0",
+      "paidWithoutService": "0",
+      "unpaidServiceCost": "0",
+      "benignFalseBlock": 0,
+      "blocked": 0,
+      "settledCount": 1,
+      "grants": 1,
+      "hookLatencyMsP50": 0.223,
+      "hookLatencyMsP99": 0.223
+    },
+    "pass": true,
+    "note": "1 settled / 0 blocked of 1"
+  },
+  {
+    "fixtureId": "benign-amount-150000",
+    "klass": "benign",
+    "arm": "native+guard",
+    "profile": "budget-only",
+    "metrics": {
+      "unauthorizedPayerOutflow": "0",
+      "paidWithoutService": "0",
+      "unpaidServiceCost": "0",
+      "benignFalseBlock": 0,
+      "blocked": 0,
+      "settledCount": 1,
+      "grants": 1,
+      "hookLatencyMsP50": 0.246,
+      "hookLatencyMsP99": 0.246
+    },
+    "pass": true,
+    "note": "1 settled / 0 blocked of 1"
+  },
+  {
+    "fixtureId": "benign-amount-150000",
+    "klass": "benign",
+    "arm": "native+guard",
+    "profile": "mandate-required",
+    "metrics": {
+      "unauthorizedPayerOutflow": "0",
+      "paidWithoutService": "0",
+      "unpaidServiceCost": "0",
+      "benignFalseBlock": 0,
+      "blocked": 0,
+      "settledCount": 1,
+      "grants": 1,
+      "hookLatencyMsP50": 0.304,
+      "hookLatencyMsP99": 0.304
+    },
+    "pass": true,
+    "note": "1 settled / 0 blocked of 1"
+  },
+  {
+    "fixtureId": "benign-amount-200000",
+    "klass": "benign",
+    "arm": "native",
+    "profile": "n/a",
+    "metrics": {
+      "unauthorizedPayerOutflow": "0",
+      "paidWithoutService": "0",
+      "unpaidServiceCost": "0",
+      "benignFalseBlock": 0,
+      "blocked": 0,
+      "settledCount": 1,
+      "grants": 1,
+      "hookLatencyMsP50": 0.273,
+      "hookLatencyMsP99": 0.273
+    },
+    "pass": true,
+    "note": "1 settled / 0 blocked of 1"
+  },
+  {
+    "fixtureId": "benign-amount-200000",
+    "klass": "benign",
+    "arm": "native+guard",
+    "profile": "budget-only",
+    "metrics": {
+      "unauthorizedPayerOutflow": "0",
+      "paidWithoutService": "0",
+      "unpaidServiceCost": "0",
+      "benignFalseBlock": 0,
+      "blocked": 0,
+      "settledCount": 1,
+      "grants": 1,
+      "hookLatencyMsP50": 0.237,
+      "hookLatencyMsP99": 0.237
+    },
+    "pass": true,
+    "note": "1 settled / 0 blocked of 1"
+  },
+  {
+    "fixtureId": "benign-amount-200000",
+    "klass": "benign",
+    "arm": "native+guard",
+    "profile": "mandate-required",
+    "metrics": {
+      "unauthorizedPayerOutflow": "0",
+      "paidWithoutService": "0",
+      "unpaidServiceCost": "0",
+      "benignFalseBlock": 0,
+      "blocked": 0,
+      "settledCount": 1,
+      "grants": 1,
+      "hookLatencyMsP50": 0.228,
+      "hookLatencyMsP99": 0.228
+    },
+    "pass": true,
+    "note": "1 settled / 0 blocked of 1"
+  },
+  {
+    "fixtureId": "benign-amount-250000",
+    "klass": "benign",
+    "arm": "native",
+    "profile": "n/a",
+    "metrics": {
+      "unauthorizedPayerOutflow": "0",
+      "paidWithoutService": "0",
+      "unpaidServiceCost": "0",
+      "benignFalseBlock": 0,
+      "blocked": 0,
+      "settledCount": 1,
+      "grants": 1,
+      "hookLatencyMsP50": 0.234,
+      "hookLatencyMsP99": 0.234
+    },
+    "pass": true,
+    "note": "1 settled / 0 blocked of 1"
+  },
+  {
+    "fixtureId": "benign-amount-250000",
+    "klass": "benign",
+    "arm": "native+guard",
+    "profile": "budget-only",
+    "metrics": {
+      "unauthorizedPayerOutflow": "0",
+      "paidWithoutService": "0",
+      "unpaidServiceCost": "0",
+      "benignFalseBlock": 0,
+      "blocked": 0,
+      "settledCount": 1,
+      "grants": 1,
+      "hookLatencyMsP50": 0.23,
+      "hookLatencyMsP99": 0.23
+    },
+    "pass": true,
+    "note": "1 settled / 0 blocked of 1"
+  },
+  {
+    "fixtureId": "benign-amount-250000",
+    "klass": "benign",
+    "arm": "native+guard",
+    "profile": "mandate-required",
+    "metrics": {
+      "unauthorizedPayerOutflow": "0",
+      "paidWithoutService": "0",
+      "unpaidServiceCost": "0",
+      "benignFalseBlock": 0,
+      "blocked": 0,
+      "settledCount": 1,
+      "grants": 1,
+      "hookLatencyMsP50": 0.225,
+      "hookLatencyMsP99": 0.225
+    },
+    "pass": true,
+    "note": "1 settled / 0 blocked of 1"
+  },
+  {
+    "fixtureId": "benign-amount-300000",
+    "klass": "benign",
+    "arm": "native",
+    "profile": "n/a",
+    "metrics": {
+      "unauthorizedPayerOutflow": "0",
+      "paidWithoutService": "0",
+      "unpaidServiceCost": "0",
+      "benignFalseBlock": 0,
+      "blocked": 0,
+      "settledCount": 1,
+      "grants": 1,
+      "hookLatencyMsP50": 0.254,
+      "hookLatencyMsP99": 0.254
+    },
+    "pass": true,
+    "note": "1 settled / 0 blocked of 1"
+  },
+  {
+    "fixtureId": "benign-amount-300000",
+    "klass": "benign",
+    "arm": "native+guard",
+    "profile": "budget-only",
+    "metrics": {
+      "unauthorizedPayerOutflow": "0",
+      "paidWithoutService": "0",
+      "unpaidServiceCost": "0",
+      "benignFalseBlock": 0,
+      "blocked": 0,
+      "settledCount": 1,
+      "grants": 1,
+      "hookLatencyMsP50": 0.224,
+      "hookLatencyMsP99": 0.224
+    },
+    "pass": true,
+    "note": "1 settled / 0 blocked of 1"
+  },
+  {
+    "fixtureId": "benign-amount-300000",
+    "klass": "benign",
+    "arm": "native+guard",
+    "profile": "mandate-required",
+    "metrics": {
+      "unauthorizedPayerOutflow": "0",
+      "paidWithoutService": "0",
+      "unpaidServiceCost": "0",
+      "benignFalseBlock": 0,
+      "blocked": 0,
+      "settledCount": 1,
+      "grants": 1,
+      "hookLatencyMsP50": 0.227,
+      "hookLatencyMsP99": 0.227
+    },
+    "pass": true,
+    "note": "1 settled / 0 blocked of 1"
+  },
+  {
+    "fixtureId": "benign-amount-400000",
+    "klass": "benign",
+    "arm": "native",
+    "profile": "n/a",
+    "metrics": {
+      "unauthorizedPayerOutflow": "0",
+      "paidWithoutService": "0",
+      "unpaidServiceCost": "0",
+      "benignFalseBlock": 0,
+      "blocked": 0,
+      "settledCount": 1,
+      "grants": 1,
+      "hookLatencyMsP50": 0.222,
+      "hookLatencyMsP99": 0.222
+    },
+    "pass": true,
+    "note": "1 settled / 0 blocked of 1"
+  },
+  {
+    "fixtureId": "benign-amount-400000",
+    "klass": "benign",
+    "arm": "native+guard",
+    "profile": "budget-only",
+    "metrics": {
+      "unauthorizedPayerOutflow": "0",
+      "paidWithoutService": "0",
+      "unpaidServiceCost": "0",
+      "benignFalseBlock": 0,
+      "blocked": 0,
+      "settledCount": 1,
+      "grants": 1,
+      "hookLatencyMsP50": 0.238,
+      "hookLatencyMsP99": 0.238
+    },
+    "pass": true,
+    "note": "1 settled / 0 blocked of 1"
+  },
+  {
+    "fixtureId": "benign-amount-400000",
+    "klass": "benign",
+    "arm": "native+guard",
+    "profile": "mandate-required",
+    "metrics": {
+      "unauthorizedPayerOutflow": "0",
+      "paidWithoutService": "0",
+      "unpaidServiceCost": "0",
+      "benignFalseBlock": 0,
+      "blocked": 0,
+      "settledCount": 1,
+      "grants": 1,
+      "hookLatencyMsP50": 0.229,
+      "hookLatencyMsP99": 0.229
+    },
+    "pass": true,
+    "note": "1 settled / 0 blocked of 1"
+  },
+  {
+    "fixtureId": "benign-amount-500000",
+    "klass": "benign",
+    "arm": "native",
+    "profile": "n/a",
+    "metrics": {
+      "unauthorizedPayerOutflow": "0",
+      "paidWithoutService": "0",
+      "unpaidServiceCost": "0",
+      "benignFalseBlock": 0,
+      "blocked": 0,
+      "settledCount": 1,
+      "grants": 1,
+      "hookLatencyMsP50": 0.251,
+      "hookLatencyMsP99": 0.251
+    },
+    "pass": true,
+    "note": "1 settled / 0 blocked of 1"
+  },
+  {
+    "fixtureId": "benign-amount-500000",
+    "klass": "benign",
+    "arm": "native+guard",
+    "profile": "budget-only",
+    "metrics": {
+      "unauthorizedPayerOutflow": "0",
+      "paidWithoutService": "0",
+      "unpaidServiceCost": "0",
+      "benignFalseBlock": 0,
+      "blocked": 0,
+      "settledCount": 1,
+      "grants": 1,
+      "hookLatencyMsP50": 0.239,
+      "hookLatencyMsP99": 0.239
+    },
+    "pass": true,
+    "note": "1 settled / 0 blocked of 1"
+  },
+  {
+    "fixtureId": "benign-amount-500000",
+    "klass": "benign",
+    "arm": "native+guard",
+    "profile": "mandate-required",
+    "metrics": {
+      "unauthorizedPayerOutflow": "0",
+      "paidWithoutService": "0",
+      "unpaidServiceCost": "0",
+      "benignFalseBlock": 0,
+      "blocked": 0,
+      "settledCount": 1,
+      "grants": 1,
+      "hookLatencyMsP50": 0.241,
+      "hookLatencyMsP99": 0.241
+    },
+    "pass": true,
+    "note": "1 settled / 0 blocked of 1"
+  },
+  {
+    "fixtureId": "benign-amount-600000",
+    "klass": "benign",
+    "arm": "native",
+    "profile": "n/a",
+    "metrics": {
+      "unauthorizedPayerOutflow": "0",
+      "paidWithoutService": "0",
+      "unpaidServiceCost": "0",
+      "benignFalseBlock": 0,
+      "blocked": 0,
+      "settledCount": 1,
+      "grants": 1,
+      "hookLatencyMsP50": 0.22,
+      "hookLatencyMsP99": 0.22
+    },
+    "pass": true,
+    "note": "1 settled / 0 blocked of 1"
+  },
+  {
+    "fixtureId": "benign-amount-600000",
+    "klass": "benign",
+    "arm": "native+guard",
+    "profile": "budget-only",
+    "metrics": {
+      "unauthorizedPayerOutflow": "0",
+      "paidWithoutService": "0",
+      "unpaidServiceCost": "0",
+      "benignFalseBlock": 0,
+      "blocked": 0,
+      "settledCount": 1,
+      "grants": 1,
+      "hookLatencyMsP50": 0.282,
+      "hookLatencyMsP99": 0.282
+    },
+    "pass": true,
+    "note": "1 settled / 0 blocked of 1"
+  },
+  {
+    "fixtureId": "benign-amount-600000",
+    "klass": "benign",
+    "arm": "native+guard",
+    "profile": "mandate-required",
+    "metrics": {
+      "unauthorizedPayerOutflow": "0",
+      "paidWithoutService": "0",
+      "unpaidServiceCost": "0",
+      "benignFalseBlock": 0,
+      "blocked": 0,
+      "settledCount": 1,
+      "grants": 1,
+      "hookLatencyMsP50": 0.298,
+      "hookLatencyMsP99": 0.298
+    },
+    "pass": true,
+    "note": "1 settled / 0 blocked of 1"
+  },
+  {
+    "fixtureId": "benign-amount-700000",
+    "klass": "benign",
+    "arm": "native",
+    "profile": "n/a",
+    "metrics": {
+      "unauthorizedPayerOutflow": "0",
+      "paidWithoutService": "0",
+      "unpaidServiceCost": "0",
+      "benignFalseBlock": 0,
+      "blocked": 0,
+      "settledCount": 1,
+      "grants": 1,
+      "hookLatencyMsP50": 0.268,
+      "hookLatencyMsP99": 0.268
+    },
+    "pass": true,
+    "note": "1 settled / 0 blocked of 1"
+  },
+  {
+    "fixtureId": "benign-amount-700000",
+    "klass": "benign",
+    "arm": "native+guard",
+    "profile": "budget-only",
+    "metrics": {
+      "unauthorizedPayerOutflow": "0",
+      "paidWithoutService": "0",
+      "unpaidServiceCost": "0",
+      "benignFalseBlock": 0,
+      "blocked": 0,
+      "settledCount": 1,
+      "grants": 1,
+      "hookLatencyMsP50": 0.293,
+      "hookLatencyMsP99": 0.293
+    },
+    "pass": true,
+    "note": "1 settled / 0 blocked of 1"
+  },
+  {
+    "fixtureId": "benign-amount-700000",
+    "klass": "benign",
+    "arm": "native+guard",
+    "profile": "mandate-required",
+    "metrics": {
+      "unauthorizedPayerOutflow": "0",
+      "paidWithoutService": "0",
+      "unpaidServiceCost": "0",
+      "benignFalseBlock": 0,
+      "blocked": 0,
+      "settledCount": 1,
+      "grants": 1,
+      "hookLatencyMsP50": 0.232,
+      "hookLatencyMsP99": 0.232
+    },
+    "pass": true,
+    "note": "1 settled / 0 blocked of 1"
+  },
+  {
+    "fixtureId": "benign-amount-800000",
+    "klass": "benign",
+    "arm": "native",
+    "profile": "n/a",
+    "metrics": {
+      "unauthorizedPayerOutflow": "0",
+      "paidWithoutService": "0",
+      "unpaidServiceCost": "0",
+      "benignFalseBlock": 0,
+      "blocked": 0,
+      "settledCount": 1,
+      "grants": 1,
+      "hookLatencyMsP50": 0.28,
+      "hookLatencyMsP99": 0.28
+    },
+    "pass": true,
+    "note": "1 settled / 0 blocked of 1"
+  },
+  {
+    "fixtureId": "benign-amount-800000",
+    "klass": "benign",
+    "arm": "native+guard",
+    "profile": "budget-only",
+    "metrics": {
+      "unauthorizedPayerOutflow": "0",
+      "paidWithoutService": "0",
+      "unpaidServiceCost": "0",
+      "benignFalseBlock": 0,
+      "blocked": 0,
+      "settledCount": 1,
+      "grants": 1,
+      "hookLatencyMsP50": 0.228,
+      "hookLatencyMsP99": 0.228
+    },
+    "pass": true,
+    "note": "1 settled / 0 blocked of 1"
+  },
+  {
+    "fixtureId": "benign-amount-800000",
+    "klass": "benign",
+    "arm": "native+guard",
+    "profile": "mandate-required",
+    "metrics": {
+      "unauthorizedPayerOutflow": "0",
+      "paidWithoutService": "0",
+      "unpaidServiceCost": "0",
+      "benignFalseBlock": 0,
+      "blocked": 0,
+      "settledCount": 1,
+      "grants": 1,
+      "hookLatencyMsP50": 0.233,
+      "hookLatencyMsP99": 0.233
+    },
+    "pass": true,
+    "note": "1 settled / 0 blocked of 1"
+  },
+  {
+    "fixtureId": "benign-amount-900000",
+    "klass": "benign",
+    "arm": "native",
+    "profile": "n/a",
+    "metrics": {
+      "unauthorizedPayerOutflow": "0",
+      "paidWithoutService": "0",
+      "unpaidServiceCost": "0",
+      "benignFalseBlock": 0,
+      "blocked": 0,
+      "settledCount": 1,
+      "grants": 1,
+      "hookLatencyMsP50": 0.256,
+      "hookLatencyMsP99": 0.256
+    },
+    "pass": true,
+    "note": "1 settled / 0 blocked of 1"
+  },
+  {
+    "fixtureId": "benign-amount-900000",
+    "klass": "benign",
+    "arm": "native+guard",
+    "profile": "budget-only",
+    "metrics": {
+      "unauthorizedPayerOutflow": "0",
+      "paidWithoutService": "0",
+      "unpaidServiceCost": "0",
+      "benignFalseBlock": 0,
+      "blocked": 0,
+      "settledCount": 1,
+      "grants": 1,
+      "hookLatencyMsP50": 0.374,
+      "hookLatencyMsP99": 0.374
+    },
+    "pass": true,
+    "note": "1 settled / 0 blocked of 1"
+  },
+  {
+    "fixtureId": "benign-amount-900000",
+    "klass": "benign",
+    "arm": "native+guard",
+    "profile": "mandate-required",
+    "metrics": {
+      "unauthorizedPayerOutflow": "0",
+      "paidWithoutService": "0",
+      "unpaidServiceCost": "0",
+      "benignFalseBlock": 0,
+      "blocked": 0,
+      "settledCount": 1,
+      "grants": 1,
+      "hookLatencyMsP50": 0.244,
+      "hookLatencyMsP99": 0.244
+    },
+    "pass": true,
+    "note": "1 settled / 0 blocked of 1"
+  },
+  {
     "fixtureId": "benign-amount-950000",
+    "klass": "benign",
+    "arm": "native",
+    "profile": "n/a",
+    "metrics": {
+      "unauthorizedPayerOutflow": "0",
+      "paidWithoutService": "0",
+      "unpaidServiceCost": "0",
+      "benignFalseBlock": 0,
+      "blocked": 0,
+      "settledCount": 1,
+      "grants": 1,
+      "hookLatencyMsP50": 0.226,
+      "hookLatencyMsP99": 0.226
+    },
+    "pass": true,
+    "note": "1 settled / 0 blocked of 1"
+  },
+  {
+    "fixtureId": "benign-amount-950000",
+    "klass": "benign",
+    "arm": "native+guard",
+    "profile": "budget-only",
+    "metrics": {
+      "unauthorizedPayerOutflow": "0",
+      "paidWithoutService": "0",
+      "unpaidServiceCost": "0",
+      "benignFalseBlock": 0,
+      "blocked": 0,
+      "settledCount": 1,
+      "grants": 1,
+      "hookLatencyMsP50": 0.226,
+      "hookLatencyMsP99": 0.226
+    },
+    "pass": true,
+    "note": "1 settled / 0 blocked of 1"
+  },
+  {
+    "fixtureId": "benign-amount-950000",
+    "klass": "benign",
+    "arm": "native+guard",
+    "profile": "mandate-required",
+    "metrics": {
+      "unauthorizedPayerOutflow": "0",
+      "paidWithoutService": "0",
+      "unpaidServiceCost": "0",
+      "benignFalseBlock": 0,
+      "blocked": 0,
+      "settledCount": 1,
+      "grants": 1,
+      "hookLatencyMsP50": 0.229,
+      "hookLatencyMsP99": 0.229
+    },
+    "pass": true,
+    "note": "1 settled / 0 blocked of 1"
+  },
+  {
+    "fixtureId": "benign-amount-990000",
+    "klass": "benign",
+    "arm": "native",
+    "profile": "n/a",
+    "metrics": {
+      "unauthorizedPayerOutflow": "0",
+      "paidWithoutService": "0",
+      "unpaidServiceCost": "0",
+      "benignFalseBlock": 0,
+      "blocked": 0,
+      "settledCount": 1,
+      "grants": 1,
+      "hookLatencyMsP50": 0.223,
+      "hookLatencyMsP99": 0.223
+    },
+    "pass": true,
+    "note": "1 settled / 0 blocked of 1"
+  },
+  {
+    "fixtureId": "benign-amount-990000",
+    "klass": "benign",
+    "arm": "native+guard",
+    "profile": "budget-only",
+    "metrics": {
+      "unauthorizedPayerOutflow": "0",
+      "paidWithoutService": "0",
+      "unpaidServiceCost": "0",
+      "benignFalseBlock": 0,
+      "blocked": 0,
+      "settledCount": 1,
+      "grants": 1,
+      "hookLatencyMsP50": 0.231,
+      "hookLatencyMsP99": 0.231
+    },
+    "pass": true,
+    "note": "1 settled / 0 blocked of 1"
+  },
+  {
+    "fixtureId": "benign-amount-990000",
     "klass": "benign",
     "arm": "native+guard",
     "profile": "mandate-required",
@@ -1520,143 +1577,10 @@
     "note": "1 settled / 0 blocked of 1"
   },
   {
-    "fixtureId": "benign-amount-990000",
-    "klass": "benign",
-    "arm": "native",
-    "profile": "n/a",
-    "metrics": {
-      "unauthorizedPayerOutflow": "0",
-      "paidWithoutService": "0",
-      "unpaidServiceCost": "0",
-      "benignFalseBlock": 0,
-      "blocked": 0,
-      "settledCount": 1,
-      "grants": 1,
-      "hookLatencyMsP50": 0.218,
-      "hookLatencyMsP99": 0.218
-    },
-    "pass": true,
-    "note": "1 settled / 0 blocked of 1"
-  },
-  {
-    "fixtureId": "benign-amount-990000",
-    "klass": "benign",
-    "arm": "native+guard",
-    "profile": "budget-only",
-    "metrics": {
-      "unauthorizedPayerOutflow": "0",
-      "paidWithoutService": "0",
-      "unpaidServiceCost": "0",
-      "benignFalseBlock": 0,
-      "blocked": 0,
-      "settledCount": 1,
-      "grants": 1,
-      "hookLatencyMsP50": 0.221,
-      "hookLatencyMsP99": 0.221
-    },
-    "pass": true,
-    "note": "1 settled / 0 blocked of 1"
-  },
-  {
-    "fixtureId": "benign-amount-990000",
-    "klass": "benign",
-    "arm": "native+guard",
-    "profile": "mandate-required",
-    "metrics": {
-      "unauthorizedPayerOutflow": "0",
-      "paidWithoutService": "0",
-      "unpaidServiceCost": "0",
-      "benignFalseBlock": 0,
-      "blocked": 0,
-      "settledCount": 1,
-      "grants": 1,
-      "hookLatencyMsP50": 0.218,
-      "hookLatencyMsP99": 0.218
-    },
-    "pass": true,
-    "note": "1 settled / 0 blocked of 1"
-  },
-  {
     "fixtureId": "benign-amount-999000",
     "klass": "benign",
     "arm": "native",
     "profile": "n/a",
-    "metrics": {
-      "unauthorizedPayerOutflow": "0",
-      "paidWithoutService": "0",
-      "unpaidServiceCost": "0",
-      "benignFalseBlock": 0,
-      "blocked": 0,
-      "settledCount": 1,
-      "grants": 1,
-      "hookLatencyMsP50": 0.215,
-      "hookLatencyMsP99": 0.215
-    },
-    "pass": true,
-    "note": "1 settled / 0 blocked of 1"
-  },
-  {
-    "fixtureId": "benign-amount-999000",
-    "klass": "benign",
-    "arm": "native+guard",
-    "profile": "budget-only",
-    "metrics": {
-      "unauthorizedPayerOutflow": "0",
-      "paidWithoutService": "0",
-      "unpaidServiceCost": "0",
-      "benignFalseBlock": 0,
-      "blocked": 0,
-      "settledCount": 1,
-      "grants": 1,
-      "hookLatencyMsP50": 0.251,
-      "hookLatencyMsP99": 0.251
-    },
-    "pass": true,
-    "note": "1 settled / 0 blocked of 1"
-  },
-  {
-    "fixtureId": "benign-amount-999000",
-    "klass": "benign",
-    "arm": "native+guard",
-    "profile": "mandate-required",
-    "metrics": {
-      "unauthorizedPayerOutflow": "0",
-      "paidWithoutService": "0",
-      "unpaidServiceCost": "0",
-      "benignFalseBlock": 0,
-      "blocked": 0,
-      "settledCount": 1,
-      "grants": 1,
-      "hookLatencyMsP50": 0.214,
-      "hookLatencyMsP99": 0.214
-    },
-    "pass": true,
-    "note": "1 settled / 0 blocked of 1"
-  },
-  {
-    "fixtureId": "benign-amount-999999",
-    "klass": "benign",
-    "arm": "native",
-    "profile": "n/a",
-    "metrics": {
-      "unauthorizedPayerOutflow": "0",
-      "paidWithoutService": "0",
-      "unpaidServiceCost": "0",
-      "benignFalseBlock": 0,
-      "blocked": 0,
-      "settledCount": 1,
-      "grants": 1,
-      "hookLatencyMsP50": 0.211,
-      "hookLatencyMsP99": 0.211
-    },
-    "pass": true,
-    "note": "1 settled / 0 blocked of 1"
-  },
-  {
-    "fixtureId": "benign-amount-999999",
-    "klass": "benign",
-    "arm": "native+guard",
-    "profile": "budget-only",
     "metrics": {
       "unauthorizedPayerOutflow": "0",
       "paidWithoutService": "0",
@@ -1672,6 +1596,82 @@
     "note": "1 settled / 0 blocked of 1"
   },
   {
+    "fixtureId": "benign-amount-999000",
+    "klass": "benign",
+    "arm": "native+guard",
+    "profile": "budget-only",
+    "metrics": {
+      "unauthorizedPayerOutflow": "0",
+      "paidWithoutService": "0",
+      "unpaidServiceCost": "0",
+      "benignFalseBlock": 0,
+      "blocked": 0,
+      "settledCount": 1,
+      "grants": 1,
+      "hookLatencyMsP50": 0.234,
+      "hookLatencyMsP99": 0.234
+    },
+    "pass": true,
+    "note": "1 settled / 0 blocked of 1"
+  },
+  {
+    "fixtureId": "benign-amount-999000",
+    "klass": "benign",
+    "arm": "native+guard",
+    "profile": "mandate-required",
+    "metrics": {
+      "unauthorizedPayerOutflow": "0",
+      "paidWithoutService": "0",
+      "unpaidServiceCost": "0",
+      "benignFalseBlock": 0,
+      "blocked": 0,
+      "settledCount": 1,
+      "grants": 1,
+      "hookLatencyMsP50": 0.228,
+      "hookLatencyMsP99": 0.228
+    },
+    "pass": true,
+    "note": "1 settled / 0 blocked of 1"
+  },
+  {
+    "fixtureId": "benign-amount-999999",
+    "klass": "benign",
+    "arm": "native",
+    "profile": "n/a",
+    "metrics": {
+      "unauthorizedPayerOutflow": "0",
+      "paidWithoutService": "0",
+      "unpaidServiceCost": "0",
+      "benignFalseBlock": 0,
+      "blocked": 0,
+      "settledCount": 1,
+      "grants": 1,
+      "hookLatencyMsP50": 0.238,
+      "hookLatencyMsP99": 0.238
+    },
+    "pass": true,
+    "note": "1 settled / 0 blocked of 1"
+  },
+  {
+    "fixtureId": "benign-amount-999999",
+    "klass": "benign",
+    "arm": "native+guard",
+    "profile": "budget-only",
+    "metrics": {
+      "unauthorizedPayerOutflow": "0",
+      "paidWithoutService": "0",
+      "unpaidServiceCost": "0",
+      "benignFalseBlock": 0,
+      "blocked": 0,
+      "settledCount": 1,
+      "grants": 1,
+      "hookLatencyMsP50": 0.243,
+      "hookLatencyMsP99": 0.243
+    },
+    "pass": true,
+    "note": "1 settled / 0 blocked of 1"
+  },
+  {
     "fixtureId": "benign-amount-999999",
     "klass": "benign",
     "arm": "native+guard",
@@ -1684,8 +1684,8 @@
       "blocked": 0,
       "settledCount": 1,
       "grants": 1,
-      "hookLatencyMsP50": 0.237,
-      "hookLatencyMsP99": 0.237
+      "hookLatencyMsP50": 0.26,
+      "hookLatencyMsP99": 0.26
     },
     "pass": true,
     "note": "1 settled / 0 blocked of 1"
@@ -1703,8 +1703,8 @@
       "blocked": 0,
       "settledCount": 2,
       "grants": 2,
-      "hookLatencyMsP50": 0.561,
-      "hookLatencyMsP99": 0.561
+      "hookLatencyMsP50": 0.609,
+      "hookLatencyMsP99": 0.609
     },
     "pass": true,
     "note": "2 settled / 0 blocked of 2"
@@ -1722,8 +1722,8 @@
       "blocked": 0,
       "settledCount": 2,
       "grants": 2,
-      "hookLatencyMsP50": 0.58,
-      "hookLatencyMsP99": 0.58
+      "hookLatencyMsP50": 0.605,
+      "hookLatencyMsP99": 0.605
     },
     "pass": true,
     "note": "2 settled / 0 blocked of 2"
@@ -1741,8 +1741,8 @@
       "blocked": 0,
       "settledCount": 2,
       "grants": 2,
-      "hookLatencyMsP50": 0.563,
-      "hookLatencyMsP99": 0.563
+      "hookLatencyMsP50": 0.591,
+      "hookLatencyMsP99": 0.591
     },
     "pass": true,
     "note": "2 settled / 0 blocked of 2"
@@ -1760,8 +1760,8 @@
       "blocked": 0,
       "settledCount": 3,
       "grants": 3,
-      "hookLatencyMsP50": 0.792,
-      "hookLatencyMsP99": 0.923
+      "hookLatencyMsP50": 0.828,
+      "hookLatencyMsP99": 0.979
     },
     "pass": true,
     "note": "3 settled / 0 blocked of 3"
@@ -1779,8 +1779,8 @@
       "blocked": 0,
       "settledCount": 3,
       "grants": 3,
-      "hookLatencyMsP50": 0.796,
-      "hookLatencyMsP99": 0.939
+      "hookLatencyMsP50": 0.919,
+      "hookLatencyMsP99": 1.053
     },
     "pass": true,
     "note": "3 settled / 0 blocked of 3"
@@ -1798,8 +1798,8 @@
       "blocked": 0,
       "settledCount": 3,
       "grants": 3,
-      "hookLatencyMsP50": 0.825,
-      "hookLatencyMsP99": 0.961
+      "hookLatencyMsP50": 1.172,
+      "hookLatencyMsP99": 1.334
     },
     "pass": true,
     "note": "3 settled / 0 blocked of 3"
@@ -1817,8 +1817,8 @@
       "blocked": 0,
       "settledCount": 4,
       "grants": 4,
-      "hookLatencyMsP50": 1.16,
-      "hookLatencyMsP99": 1.29
+      "hookLatencyMsP50": 1.219,
+      "hookLatencyMsP99": 1.353
     },
     "pass": true,
     "note": "4 settled / 0 blocked of 4"
@@ -1836,8 +1836,8 @@
       "blocked": 0,
       "settledCount": 4,
       "grants": 4,
-      "hookLatencyMsP50": 1.257,
-      "hookLatencyMsP99": 1.391
+      "hookLatencyMsP50": 1.219,
+      "hookLatencyMsP99": 1.352
     },
     "pass": true,
     "note": "4 settled / 0 blocked of 4"
@@ -1855,8 +1855,8 @@
       "blocked": 0,
       "settledCount": 4,
       "grants": 4,
-      "hookLatencyMsP50": 1.093,
-      "hookLatencyMsP99": 1.214
+      "hookLatencyMsP50": 1.164,
+      "hookLatencyMsP99": 1.286
     },
     "pass": true,
     "note": "4 settled / 0 blocked of 4"
@@ -1874,8 +1874,8 @@
       "blocked": 0,
       "settledCount": 5,
       "grants": 5,
-      "hookLatencyMsP50": 1.301,
-      "hookLatencyMsP99": 1.541
+      "hookLatencyMsP50": 1.377,
+      "hookLatencyMsP99": 1.628
     },
     "pass": true,
     "note": "5 settled / 0 blocked of 5"
@@ -1893,8 +1893,8 @@
       "blocked": 0,
       "settledCount": 5,
       "grants": 5,
-      "hookLatencyMsP50": 1.344,
-      "hookLatencyMsP99": 1.6
+      "hookLatencyMsP50": 1.401,
+      "hookLatencyMsP99": 1.665
     },
     "pass": true,
     "note": "5 settled / 0 blocked of 5"
@@ -1912,8 +1912,8 @@
       "blocked": 0,
       "settledCount": 5,
       "grants": 5,
-      "hookLatencyMsP50": 1.303,
-      "hookLatencyMsP99": 1.566
+      "hookLatencyMsP50": 1.443,
+      "hookLatencyMsP99": 1.711
     },
     "pass": true,
     "note": "5 settled / 0 blocked of 5"
@@ -1931,8 +1931,8 @@
       "blocked": 0,
       "settledCount": 6,
       "grants": 6,
-      "hookLatencyMsP50": 1.655,
-      "hookLatencyMsP99": 1.907
+      "hookLatencyMsP50": 1.865,
+      "hookLatencyMsP99": 2.128
     },
     "pass": true,
     "note": "6 settled / 0 blocked of 6"
@@ -1950,8 +1950,8 @@
       "blocked": 0,
       "settledCount": 6,
       "grants": 6,
-      "hookLatencyMsP50": 1.824,
-      "hookLatencyMsP99": 2.071
+      "hookLatencyMsP50": 1.939,
+      "hookLatencyMsP99": 2.23
     },
     "pass": true,
     "note": "6 settled / 0 blocked of 6"
@@ -1969,8 +1969,8 @@
       "blocked": 0,
       "settledCount": 6,
       "grants": 6,
-      "hookLatencyMsP50": 1.628,
-      "hookLatencyMsP99": 1.867
+      "hookLatencyMsP50": 1.809,
+      "hookLatencyMsP99": 2.088
     },
     "pass": true,
     "note": "6 settled / 0 blocked of 6"
@@ -1988,8 +1988,8 @@
       "blocked": 0,
       "settledCount": 7,
       "grants": 7,
-      "hookLatencyMsP50": 1.887,
-      "hookLatencyMsP99": 2.233
+      "hookLatencyMsP50": 2.152,
+      "hookLatencyMsP99": 2.51
     },
     "pass": true,
     "note": "7 settled / 0 blocked of 7"
@@ -2007,8 +2007,8 @@
       "blocked": 0,
       "settledCount": 7,
       "grants": 7,
-      "hookLatencyMsP50": 1.829,
-      "hookLatencyMsP99": 2.213
+      "hookLatencyMsP50": 1.951,
+      "hookLatencyMsP99": 2.337
     },
     "pass": true,
     "note": "7 settled / 0 blocked of 7"
@@ -2026,8 +2026,8 @@
       "blocked": 0,
       "settledCount": 7,
       "grants": 7,
-      "hookLatencyMsP50": 1.85,
-      "hookLatencyMsP99": 2.235
+      "hookLatencyMsP50": 1.937,
+      "hookLatencyMsP99": 2.483
     },
     "pass": true,
     "note": "7 settled / 0 blocked of 7"
@@ -2045,8 +2045,8 @@
       "blocked": 0,
       "settledCount": 8,
       "grants": 8,
-      "hookLatencyMsP50": 2.269,
-      "hookLatencyMsP99": 2.627
+      "hookLatencyMsP50": 2.244,
+      "hookLatencyMsP99": 2.604
     },
     "pass": true,
     "note": "8 settled / 0 blocked of 8"
@@ -2064,8 +2064,8 @@
       "blocked": 0,
       "settledCount": 8,
       "grants": 8,
-      "hookLatencyMsP50": 2.223,
-      "hookLatencyMsP99": 2.595
+      "hookLatencyMsP50": 2.303,
+      "hookLatencyMsP99": 2.733
     },
     "pass": true,
     "note": "8 settled / 0 blocked of 8"
@@ -2083,8 +2083,8 @@
       "blocked": 0,
       "settledCount": 8,
       "grants": 8,
-      "hookLatencyMsP50": 2.241,
-      "hookLatencyMsP99": 2.616
+      "hookLatencyMsP50": 2.212,
+      "hookLatencyMsP99": 2.573
     },
     "pass": true,
     "note": "8 settled / 0 blocked of 8"
@@ -2102,8 +2102,8 @@
       "blocked": 0,
       "settledCount": 2,
       "grants": 2,
-      "hookLatencyMsP50": 0.243,
-      "hookLatencyMsP99": 0.243
+      "hookLatencyMsP50": 0.267,
+      "hookLatencyMsP99": 0.267
     },
     "pass": true,
     "note": "2 settled / 0 blocked of 2"
@@ -2121,8 +2121,8 @@
       "blocked": 0,
       "settledCount": 2,
       "grants": 2,
-      "hookLatencyMsP50": 0.228,
-      "hookLatencyMsP99": 0.228
+      "hookLatencyMsP50": 0.231,
+      "hookLatencyMsP99": 0.231
     },
     "pass": true,
     "note": "2 settled / 0 blocked of 2"
@@ -2140,8 +2140,8 @@
       "blocked": 0,
       "settledCount": 2,
       "grants": 2,
-      "hookLatencyMsP50": 0.218,
-      "hookLatencyMsP99": 0.218
+      "hookLatencyMsP50": 0.211,
+      "hookLatencyMsP99": 0.211
     },
     "pass": true,
     "note": "2 settled / 0 blocked of 2"
@@ -2159,8 +2159,8 @@
       "blocked": 0,
       "settledCount": 3,
       "grants": 3,
-      "hookLatencyMsP50": 0.221,
-      "hookLatencyMsP99": 0.273
+      "hookLatencyMsP50": 0.294,
+      "hookLatencyMsP99": 0.347
     },
     "pass": true,
     "note": "3 settled / 0 blocked of 3"
@@ -2178,7 +2178,7 @@
       "blocked": 0,
       "settledCount": 3,
       "grants": 3,
-      "hookLatencyMsP50": 0.218,
+      "hookLatencyMsP50": 0.216,
       "hookLatencyMsP99": 0.223
     },
     "pass": true,
@@ -2197,8 +2197,8 @@
       "blocked": 0,
       "settledCount": 3,
       "grants": 3,
-      "hookLatencyMsP50": 0.216,
-      "hookLatencyMsP99": 0.32
+      "hookLatencyMsP50": 0.208,
+      "hookLatencyMsP99": 0.211
     },
     "pass": true,
     "note": "3 settled / 0 blocked of 3"
@@ -2216,86 +2216,86 @@
       "blocked": 0,
       "settledCount": 4,
       "grants": 4,
-      "hookLatencyMsP50": 0.205,
-      "hookLatencyMsP99": 0.206
-    },
-    "pass": true,
-    "note": "4 settled / 0 blocked of 4"
-  },
-  {
-    "fixtureId": "benign-seq-4",
-    "klass": "benign",
-    "arm": "native+guard",
-    "profile": "budget-only",
-    "metrics": {
-      "unauthorizedPayerOutflow": "0",
-      "paidWithoutService": "0",
-      "unpaidServiceCost": "0",
-      "benignFalseBlock": 0,
-      "blocked": 0,
-      "settledCount": 4,
-      "grants": 4,
-      "hookLatencyMsP50": 0.212,
-      "hookLatencyMsP99": 0.236
-    },
-    "pass": true,
-    "note": "4 settled / 0 blocked of 4"
-  },
-  {
-    "fixtureId": "benign-seq-4",
-    "klass": "benign",
-    "arm": "native+guard",
-    "profile": "mandate-required",
-    "metrics": {
-      "unauthorizedPayerOutflow": "0",
-      "paidWithoutService": "0",
-      "unpaidServiceCost": "0",
-      "benignFalseBlock": 0,
-      "blocked": 0,
-      "settledCount": 4,
-      "grants": 4,
-      "hookLatencyMsP50": 0.207,
-      "hookLatencyMsP99": 0.212
-    },
-    "pass": true,
-    "note": "4 settled / 0 blocked of 4"
-  },
-  {
-    "fixtureId": "benign-seq-5",
-    "klass": "benign",
-    "arm": "native",
-    "profile": "n/a",
-    "metrics": {
-      "unauthorizedPayerOutflow": "0",
-      "paidWithoutService": "0",
-      "unpaidServiceCost": "0",
-      "benignFalseBlock": 0,
-      "blocked": 0,
-      "settledCount": 5,
-      "grants": 5,
-      "hookLatencyMsP50": 0.209,
-      "hookLatencyMsP99": 0.222
-    },
-    "pass": true,
-    "note": "5 settled / 0 blocked of 5"
-  },
-  {
-    "fixtureId": "benign-seq-5",
-    "klass": "benign",
-    "arm": "native+guard",
-    "profile": "budget-only",
-    "metrics": {
-      "unauthorizedPayerOutflow": "0",
-      "paidWithoutService": "0",
-      "unpaidServiceCost": "0",
-      "benignFalseBlock": 0,
-      "blocked": 0,
-      "settledCount": 5,
-      "grants": 5,
-      "hookLatencyMsP50": 0.214,
+      "hookLatencyMsP50": 0.217,
       "hookLatencyMsP99": 0.237
     },
     "pass": true,
+    "note": "4 settled / 0 blocked of 4"
+  },
+  {
+    "fixtureId": "benign-seq-4",
+    "klass": "benign",
+    "arm": "native+guard",
+    "profile": "budget-only",
+    "metrics": {
+      "unauthorizedPayerOutflow": "0",
+      "paidWithoutService": "0",
+      "unpaidServiceCost": "0",
+      "benignFalseBlock": 0,
+      "blocked": 0,
+      "settledCount": 4,
+      "grants": 4,
+      "hookLatencyMsP50": 0.232,
+      "hookLatencyMsP99": 0.237
+    },
+    "pass": true,
+    "note": "4 settled / 0 blocked of 4"
+  },
+  {
+    "fixtureId": "benign-seq-4",
+    "klass": "benign",
+    "arm": "native+guard",
+    "profile": "mandate-required",
+    "metrics": {
+      "unauthorizedPayerOutflow": "0",
+      "paidWithoutService": "0",
+      "unpaidServiceCost": "0",
+      "benignFalseBlock": 0,
+      "blocked": 0,
+      "settledCount": 4,
+      "grants": 4,
+      "hookLatencyMsP50": 0.223,
+      "hookLatencyMsP99": 0.231
+    },
+    "pass": true,
+    "note": "4 settled / 0 blocked of 4"
+  },
+  {
+    "fixtureId": "benign-seq-5",
+    "klass": "benign",
+    "arm": "native",
+    "profile": "n/a",
+    "metrics": {
+      "unauthorizedPayerOutflow": "0",
+      "paidWithoutService": "0",
+      "unpaidServiceCost": "0",
+      "benignFalseBlock": 0,
+      "blocked": 0,
+      "settledCount": 5,
+      "grants": 5,
+      "hookLatencyMsP50": 0.21,
+      "hookLatencyMsP99": 0.224
+    },
+    "pass": true,
+    "note": "5 settled / 0 blocked of 5"
+  },
+  {
+    "fixtureId": "benign-seq-5",
+    "klass": "benign",
+    "arm": "native+guard",
+    "profile": "budget-only",
+    "metrics": {
+      "unauthorizedPayerOutflow": "0",
+      "paidWithoutService": "0",
+      "unpaidServiceCost": "0",
+      "benignFalseBlock": 0,
+      "blocked": 0,
+      "settledCount": 5,
+      "grants": 5,
+      "hookLatencyMsP50": 0.244,
+      "hookLatencyMsP99": 0.255
+    },
+    "pass": true,
     "note": "5 settled / 0 blocked of 5"
   },
   {
@@ -2311,8 +2311,8 @@
       "blocked": 0,
       "settledCount": 5,
       "grants": 5,
-      "hookLatencyMsP50": 0.218,
-      "hookLatencyMsP99": 0.229
+      "hookLatencyMsP50": 0.217,
+      "hookLatencyMsP99": 0.326
     },
     "pass": true,
     "note": "5 settled / 0 blocked of 5"
@@ -2330,8 +2330,8 @@
       "blocked": 0,
       "settledCount": 6,
       "grants": 6,
-      "hookLatencyMsP50": 0.201,
-      "hookLatencyMsP99": 0.218
+      "hookLatencyMsP50": 0.207,
+      "hookLatencyMsP99": 0.214
     },
     "pass": true,
     "note": "6 settled / 0 blocked of 6"
@@ -2349,8 +2349,8 @@
       "blocked": 0,
       "settledCount": 6,
       "grants": 6,
-      "hookLatencyMsP50": 0.202,
-      "hookLatencyMsP99": 0.219
+      "hookLatencyMsP50": 0.208,
+      "hookLatencyMsP99": 0.225
     },
     "pass": true,
     "note": "6 settled / 0 blocked of 6"
@@ -2368,8 +2368,8 @@
       "blocked": 0,
       "settledCount": 6,
       "grants": 6,
-      "hookLatencyMsP50": 0.206,
-      "hookLatencyMsP99": 0.219
+      "hookLatencyMsP50": 0.213,
+      "hookLatencyMsP99": 0.226
     },
     "pass": true,
     "note": "6 settled / 0 blocked of 6"
@@ -2388,7 +2388,7 @@
       "settledCount": 7,
       "grants": 7,
       "hookLatencyMsP50": 0.212,
-      "hookLatencyMsP99": 0.221
+      "hookLatencyMsP99": 0.22
     },
     "pass": true,
     "note": "7 settled / 0 blocked of 7"
@@ -2406,8 +2406,8 @@
       "blocked": 0,
       "settledCount": 7,
       "grants": 7,
-      "hookLatencyMsP50": 0.22,
-      "hookLatencyMsP99": 0.228
+      "hookLatencyMsP50": 0.213,
+      "hookLatencyMsP99": 0.239
     },
     "pass": true,
     "note": "7 settled / 0 blocked of 7"
@@ -2425,8 +2425,8 @@
       "blocked": 0,
       "settledCount": 7,
       "grants": 7,
-      "hookLatencyMsP50": 0.222,
-      "hookLatencyMsP99": 0.313
+      "hookLatencyMsP50": 0.223,
+      "hookLatencyMsP99": 0.24
     },
     "pass": true,
     "note": "7 settled / 0 blocked of 7"
@@ -2444,8 +2444,8 @@
       "blocked": 0,
       "settledCount": 8,
       "grants": 8,
-      "hookLatencyMsP50": 0.204,
-      "hookLatencyMsP99": 0.215
+      "hookLatencyMsP50": 0.225,
+      "hookLatencyMsP99": 0.261
     },
     "pass": true,
     "note": "8 settled / 0 blocked of 8"
@@ -2463,8 +2463,8 @@
       "blocked": 0,
       "settledCount": 8,
       "grants": 8,
-      "hookLatencyMsP50": 0.209,
-      "hookLatencyMsP99": 0.238
+      "hookLatencyMsP50": 0.242,
+      "hookLatencyMsP99": 0.293
     },
     "pass": true,
     "note": "8 settled / 0 blocked of 8"
@@ -2482,8 +2482,8 @@
       "blocked": 0,
       "settledCount": 8,
       "grants": 8,
-      "hookLatencyMsP50": 0.206,
-      "hookLatencyMsP99": 0.216
+      "hookLatencyMsP50": 0.221,
+      "hookLatencyMsP99": 0.237
     },
     "pass": true,
     "note": "8 settled / 0 blocked of 8"

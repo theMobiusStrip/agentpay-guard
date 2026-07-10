@@ -21,7 +21,7 @@ export const adversarialFixtures: Fixture[] = [
   },
   {
     id: "bait-and-switch",
-    klass: "quote-vs-billed (Tier A; self-authored fixture per §3)",
+    klass: "quote-vs-billed (Tier A; self-authored fixture)",
     description:
       "Mandate authorizes $0.001; the 402 bills $1.00 (within a $5 cap). Only an intent/provenance check catches it.",
     kind: "single",

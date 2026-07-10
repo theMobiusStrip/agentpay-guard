@@ -3,7 +3,7 @@
 Anchored to **OWASP Top 10 for Agentic Applications 2026 (ASI01–ASI10)** + the
 x402 security papers so numbers are comparable/citable. Honest scoping: a class is
 **defended** only if a built control stops it; otherwise **analyzed** or
-**measured (simulated lane)**. §1 and §3 of the plan must agree — they do here.
+**measured (simulated lane)**.
 
 **Live incident anchor (May 4, 2026):** the Grok/Bankr agent wallet was drained of
 ~$150k–200k (≈3B DRB on Base) in a **two-stage** attack — an NFT sent to escalate
@@ -31,7 +31,7 @@ fail-closed covers "store unavailable", not a poisoned store.
 | Rug pull (tool def mutated post-approval) | tool re-definition | TOFU on tool identity | **analyzed** (stretch) | Invariant; ETDI 2506.01333 |
 | Price/quote bait-and-switch (quote low, bill high) | 402 header | intent-constraint check (quoted vs about-to-be-signed `value`) | **defended** (mandate-required) | **self-authored fixture** — see citation note below |
 
-**Citation note (Q9 correction):** the plan's mapping of bait-and-switch to arXiv
+**Citation note:** an earlier mapping of bait-and-switch to arXiv
 2605.30998 is **REFUTED** — that paper does **not** name quote-manipulation. The
 bait-and-switch fixture is therefore **self-authored** and counted in the
 anti-overfit tally. Do **not** cite 2605.30998 for it.
@@ -58,7 +58,7 @@ jailbreak, **not** payments) — say "sub-threshold / cumulative drain".
 CVE-2025-49596 (MCP Inspector RCE) = evidence of MCP's immature posture, **not** a
 tool-poisoning example.
 
-**2605.30998 label correction (Q9):** cite it for the *existence* of the flaw
+**2605.30998 label correction:** cite it for the *existence* of the flaw
 classes (cross-resource substitution / duplicate-settlement / overdraft / denial
 of settlement, framed around invariants I1–I5), but **do not** use the fabricated
 "F1–F5" labels and **do not** quote the unverified "74% of Base merchants" figure.
