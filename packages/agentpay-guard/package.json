@@ -1,0 +1,20 @@
+{
+  "name": "agentpay-guard",
+  "version": "0.0.1",
+  "description": "Stateful x402 policy plugin: atomic reserve-before-sign budget cap, trusted intent constraint check, duplicate-authorization guard. Fail-closed outside the MVP envelope.",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": ["dist", "README.md"],
+  "scripts": {
+    "build": "tsc -b",
+    "test": "vitest run"
+  },
+  "license": "MIT"
+}
