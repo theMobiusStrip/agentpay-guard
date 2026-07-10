@@ -144,7 +144,6 @@ spike/hook-probe/                      offline hook probe against the real SDK
 spike/e2e/                             funded Base Sepolia round-trip harness
 bench/                                 reproducibility bundle + results
 docs/reference/                        durable: threat model + attack taxonomy
-docs/deck.md                           the 5-slide deck
 ```
 
 **Agent-agnosticism** is shown by the core-vs-adapter separation (zero agent-SDK

@@ -19,7 +19,6 @@ examples/                              two worked examples (claude-proxy, raw-vi
 spike/                                 G0 hook probe (offline) + e2e harness (needs funds)
 bench/                                 reproducibility bundle, arm-A baseline, results
 docs/reference/                        durable: threat model + attack taxonomy
-docs/deck.md                           the 5-slide deck
 SECURITY.md                            authoritative security model (read before custody edits)
 ```
 (`docs/process/` — milestone notes — is private/gitignored, absent in a fresh clone.)
