@@ -2,17 +2,24 @@
   "name": "@agentpay-guard/examples",
   "private": true,
   "version": "0.0.1",
-  "description": "Two worked examples proving the same agentpay-guard plugin guards both a Claude-via-proxy agent and a raw-viem script.",
+  "description": "Worked examples: claude-proxy + raw-viem (offline, same plugin both paths) and paid-site, the x402-gated merchant the tutorial's attack demos tamper with (payer side = @themobiusstrip/agentpay-proxy).",
   "type": "module",
   "scripts": {
     "raw-viem": "tsx raw-viem.ts",
-    "claude-proxy": "tsx claude-proxy.ts"
+    "claude-proxy": "tsx claude-proxy.ts",
+    "paid-site": "tsx paid-site.ts"
   },
   "dependencies": {
     "@themobiusstrip/agentpay-guard": "*",
+    "@themobiusstrip/x402-idempotency-middleware": "*",
     "@x402/core": "2.17.0",
     "@x402/evm": "2.17.0",
+    "@x402/express": "2.17.0",
     "@x402/fetch": "2.17.0",
+    "express": "5.1.0",
     "viem": "2.31.7"
+  },
+  "devDependencies": {
+    "@types/express": "5.0.3"
   }
 }
