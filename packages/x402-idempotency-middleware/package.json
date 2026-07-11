@@ -1,5 +1,5 @@
 {
-  "name": "x402-idempotency-middleware",
+  "name": "@themobiusstrip/x402-idempotency-middleware",
   "version": "0.0.1",
   "description": "Server-side reference middleware: atomic claim-with-lease + cached-response idempotency keyed on the payer-signed EIP-3009 authorization (EIP-712 digest), not the client-supplied payment-identifier.",
   "type": "module",
@@ -11,15 +11,38 @@
       "import": "./dist/index.js"
     }
   },
-  "files": [
-    "dist",
-    "README.md"
+  "files": ["dist", "README.md", "LICENSE"],
+  "keywords": [
+    "x402",
+    "eip-3009",
+    "eip-712",
+    "idempotency",
+    "replay",
+    "middleware",
+    "payments"
   ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/theMobiusStrip/agentpay-guard.git",
+    "directory": "packages/x402-idempotency-middleware"
+  },
+  "bugs": {
+    "url": "https://github.com/theMobiusStrip/agentpay-guard/issues"
+  },
+  "homepage": "https://github.com/theMobiusStrip/agentpay-guard/tree/main/packages/x402-idempotency-middleware#readme",
+  "author": "agentpay-guard contributors",
+  "license": "MIT",
+  "engines": {
+    "node": ">=22"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "tsc -b",
-    "test": "vitest run"
+    "test": "vitest run",
+    "prepack": "npm run build"
   },
-  "license": "MIT",
   "dependencies": {
     "viem": "2.31.7"
   }

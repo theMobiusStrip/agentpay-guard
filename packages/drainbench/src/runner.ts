@@ -4,8 +4,8 @@
  * hooks fire; the guard reserves/blocks pre-signing). Settlement is simulated
  * deterministically. Replay is routed through the server-side middleware arm.
  */
-import { IdempotencyGuard, InMemoryClaimStore } from "x402-idempotency-middleware";
-import type { AgentPayGuard, VerifiedMandate } from "agentpay-guard";
+import { IdempotencyGuard, InMemoryClaimStore } from "@themobiusstrip/x402-idempotency-middleware";
+import type { AgentPayGuard, VerifiedMandate } from "@themobiusstrip/agentpay-guard";
 import {
   buildArmA,
   buildArmB,
@@ -23,7 +23,7 @@ import {
   type Fixture,
   type Metrics,
 } from "./scenario.js";
-import type { PolicyProfile } from "agentpay-guard";
+import type { PolicyProfile } from "@themobiusstrip/agentpay-guard";
 
 function paymentRequired(fixture: Fixture) {
   return {

@@ -10,11 +10,13 @@
     "examples"
   ],
   "scripts": {
-    "build": "npm run build -w agentpay-guard -w x402-idempotency-middleware",
+    "build": "npm run build -w packages/agentpay-guard -w packages/x402-idempotency-middleware",
     "test": "vitest run",
     "test:g1seed": "vitest run packages/agentpay-guard/test",
     "typecheck": "tsc -b",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "pack:check": "npm pack --dry-run -w packages/agentpay-guard -w packages/x402-idempotency-middleware",
+    "release:dry": "npm publish --dry-run --provenance --access public -w packages/agentpay-guard -w packages/x402-idempotency-middleware"
   },
   "devDependencies": {
     "@types/node": "24.0.10",

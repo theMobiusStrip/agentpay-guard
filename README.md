@@ -76,7 +76,7 @@ npm run -w @agentpay-guard/spike hook-probe # offline SDK probe (8/8, no funds)
 import { wrapFetchWithPayment, x402Client } from "@x402/fetch";
 import { ExactEvmScheme } from "@x402/evm";
 import { privateKeyToAccount } from "viem/accounts";
-import { installAgentPayGuard, InMemoryAtomicStore, type Policy } from "agentpay-guard";
+import { installAgentPayGuard, InMemoryAtomicStore, type Policy } from "@themobiusstrip/agentpay-guard";
 
 const policy: Policy = {
   profile: "budget-only",                 // or "mandate-required"

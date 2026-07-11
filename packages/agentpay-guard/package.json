@@ -1,5 +1,5 @@
 {
-  "name": "agentpay-guard",
+  "name": "@themobiusstrip/agentpay-guard",
   "version": "0.0.1",
   "description": "Stateful x402 policy plugin: atomic reserve-before-sign budget cap, trusted intent constraint check, duplicate-authorization guard. Fail-closed outside the MVP envelope.",
   "type": "module",
@@ -11,10 +11,39 @@
       "import": "./dist/index.js"
     }
   },
-  "files": ["dist", "README.md"],
+  "files": ["dist", "README.md", "LICENSE"],
+  "keywords": [
+    "x402",
+    "eip-3009",
+    "eip-712",
+    "payments",
+    "agent",
+    "budget",
+    "spend-limit",
+    "policy",
+    "fail-closed",
+    "viem"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/theMobiusStrip/agentpay-guard.git",
+    "directory": "packages/agentpay-guard"
+  },
+  "bugs": {
+    "url": "https://github.com/theMobiusStrip/agentpay-guard/issues"
+  },
+  "homepage": "https://github.com/theMobiusStrip/agentpay-guard/tree/main/packages/agentpay-guard#readme",
+  "author": "agentpay-guard contributors",
+  "license": "MIT",
+  "engines": {
+    "node": ">=22"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "tsc -b",
-    "test": "vitest run"
-  },
-  "license": "MIT"
+    "test": "vitest run",
+    "prepack": "npm run build"
+  }
 }

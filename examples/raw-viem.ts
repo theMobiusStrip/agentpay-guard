@@ -13,7 +13,7 @@
 import { x402Client } from "@x402/fetch";
 import { ExactEvmScheme } from "@x402/evm";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
-import { installAgentPayGuard, InMemoryAtomicStore, type Policy } from "agentpay-guard";
+import { installAgentPayGuard, InMemoryAtomicStore, type Policy } from "@themobiusstrip/agentpay-guard";
 
 const BASE_SEPOLIA = "eip155:84532";
 const USDC = "0x036cbd53842c5426634e7929541ec2318f3dcf7e";

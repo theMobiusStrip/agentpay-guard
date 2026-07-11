@@ -12,7 +12,7 @@ import { runFixture } from "./runner.js";
 import { markdownReport, toJSON } from "./report.js";
 import { preemptionScenario, reorgScenario } from "./simlane.js";
 import type { Fixture, ResultRow } from "./scenario.js";
-import type { PolicyProfile } from "agentpay-guard";
+import type { PolicyProfile } from "@themobiusstrip/agentpay-guard";
 
 const DEFAULT_CAP = 1_000_000n;
 const DEFAULT_WINDOW = 60_000;

@@ -8,7 +8,7 @@ import { buildArmA, buildArmB, payerAddress, resetDedupSeq, type ArmConfig } fro
 import { Ledger } from "../ledger.js";
 import { BASE_SEPOLIA, USDC, MERCHANT, type ArmName } from "../scenario.js";
 import type { Model, ModelMessage, ToolSpec } from "./model.js";
-import type { PolicyProfile, VerifiedMandate } from "agentpay-guard";
+import type { PolicyProfile, VerifiedMandate } from "@themobiusstrip/agentpay-guard";
 
 const PAY_TOOL: ToolSpec = {
   name: "pay",

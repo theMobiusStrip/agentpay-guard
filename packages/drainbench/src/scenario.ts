@@ -1,5 +1,5 @@
 /** DrainBench scenario + result types. */
-import type { PolicyProfile } from "agentpay-guard";
+import type { PolicyProfile } from "@themobiusstrip/agentpay-guard";
 
 export const BASE_SEPOLIA = "eip155:84532";
 export const USDC = "0x036cbd53842c5426634e7929541ec2318f3dcf7e";
