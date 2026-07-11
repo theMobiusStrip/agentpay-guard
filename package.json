@@ -16,7 +16,8 @@
     "typecheck": "tsc -b",
     "lint": "eslint .",
     "pack:check": "npm pack --dry-run -w packages/agentpay-guard -w packages/x402-idempotency-middleware",
-    "release:dry": "npm publish --dry-run --provenance --access public -w packages/agentpay-guard -w packages/x402-idempotency-middleware"
+    "release:dry": "npm publish --dry-run -w packages/agentpay-guard -w packages/x402-idempotency-middleware",
+    "release:first": "npm publish --access public -w packages/agentpay-guard -w packages/x402-idempotency-middleware"
   },
   "devDependencies": {
     "@types/node": "24.0.10",

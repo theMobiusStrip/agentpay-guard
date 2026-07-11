@@ -1,13 +1,20 @@
 name: release
 
-# Publish the two public packages (agentpay-guard, x402-idempotency-middleware)
-# to npmjs. Private workspaces (root, drainbench, examples, spike) are skipped by
-# `npm publish --workspaces`. Trigger by pushing a version tag (e.g. `v0.1.0`)
-# whose number matches the packages' package.json version, or run manually.
+# Publish the two public packages to npmjs via OIDC TRUSTED PUBLISHING — no
+# NPM_TOKEN stored anywhere. GitHub mints a short-lived OIDC token (id-token:
+# write) that npm exchanges for publish credentials, and attaches provenance.
 #
-# Requires repo secret NPM_TOKEN (an npm automation/granular token with publish
-# rights). Provenance needs id-token: write + a public repo + the `repository`
-# field in each package.json.
+# Prerequisites (one-time, per package, on npmjs.com):
+#   1. The package must already exist. npm has no first-publish-via-OIDC
+#      (npm/cli#8544), so v0.0.1 is published locally by hand first.
+#   2. Package settings -> Trusted Publisher -> GitHub Actions:
+#        organization/user = theMobiusStrip
+#        repository        = agentpay-guard
+#        workflow filename = release.yml
+# OIDC publishing requires npm >= 11.5.1 (node 22 ships npm 10, so we upgrade
+# npm below) and node >= 22.14.
+#
+# Release: bump the package versions, then push a matching tag (e.g. v0.1.0).
 on:
   push:
     tags:
@@ -32,6 +39,8 @@ jobs:
         with:
           node-version: "22"
           registry-url: "https://registry.npmjs.org"
+      # OIDC trusted publishing needs npm >= 11.5.1; node 22 ships npm 10.
+      - run: npm install -g npm@latest
       - run: npm ci
       # Release gate: never publish a tree that does not build/lint/test green.
       - run: npm run build
@@ -40,7 +49,6 @@ jobs:
       - run: npx vitest run
       # Publish the two public packages BY NAME (never --workspaces: that would
       # also target private workspaces if their `private` flag ever regressed).
-      # --provenance attests the build to the npm registry.
+      # No NODE_AUTH_TOKEN: npm authenticates via OIDC against the trusted
+      # publisher configured on npmjs.com, and --provenance is attested from it.
       - run: npm publish --provenance --access public -w packages/agentpay-guard -w packages/x402-idempotency-middleware
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
