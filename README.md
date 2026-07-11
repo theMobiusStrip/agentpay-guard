@@ -34,6 +34,10 @@ code, with the worst case bounded in dollars.
 - **[`@themobiusstrip/x402-idempotency-middleware`](https://www.npmjs.com/package/@themobiusstrip/x402-idempotency-middleware)** — replay defense for the **resource server** (the API being paid — e.g. a paid weather API or MCP tool server), keyed on the
   payer-signed EIP-3009 authorization (claim-with-lease + cached response). Covers
   the attack class the payer-side plugin structurally can't see.
+- **`@themobiusstrip/agentpay-proxy`** (`packages/agentpay-proxy`) — the guard's
+  flagship deployment as a ready-to-run service: x402 client + guard + signer in
+  one out-of-agent process, agent gets a single `paid_fetch` capability over HTTP
+  or MCP (`npx @themobiusstrip/agentpay-proxy`, `agentpay-proxy mcp`).
 - **DrainBench** (`packages/drainbench`, private) — a reproducible, offline, deterministic
   harm benchmark: the same attacks with and without the guard, losses measured in
   dollars (below).
@@ -143,8 +147,9 @@ this is exercised by the G1 gate.
 ```
 packages/agentpay-guard/               the client plugin (the deliverable)
 packages/x402-idempotency-middleware/  server replay middleware (custody artifact)
+packages/agentpay-proxy/               guarded payment proxy service (CLI + MCP + embeddable)
 packages/drainbench/                   the DrainBench harm-metric benchmark + agent scaffold
-examples/                              two worked examples (claude-proxy, raw-viem)
+examples/                              worked examples (claude-proxy, raw-viem) + paid-site merchant demo
 spike/hook-probe/                      offline hook probe against the real SDK
 spike/e2e/                             funded Base Sepolia round-trip harness
 bench/                                 reproducibility bundle + results

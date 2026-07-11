@@ -14,14 +14,16 @@ harm-metric benchmark. npm workspaces monorepo. See `README.md` for the full sto
 ```
 packages/agentpay-guard/               the client plugin (the deliverable, publishable)
 packages/x402-idempotency-middleware/  server replay middleware (publishable)
+packages/agentpay-proxy/               guarded payment proxy service (publishable; CLI + MCP)
 packages/drainbench/                   benchmark harness + agent scaffold (private)
-examples/                              two worked examples (claude-proxy, raw-viem)
+examples/                              claude-proxy + raw-viem (offline) + paid-site merchant demo
 spike/                                 G0 hook probe (offline) + e2e harness (needs funds)
 bench/                                 reproducibility bundle, arm-A baseline, results
 docs/reference/                        durable: threat model + attack taxonomy
 SECURITY.md                            authoritative security model (read before custody edits)
 ```
-(`docs/process/` — milestone notes — is private/gitignored, absent in a fresh clone.)
+(`docs/process/` — milestone notes — and `docs/tutorials/` are private/gitignored,
+absent in a fresh clone.)
 
 ## Commands
 
