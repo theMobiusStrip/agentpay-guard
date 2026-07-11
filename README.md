@@ -3,8 +3,9 @@
 [![CI](https://github.com/theMobiusStrip/agentpay-guard/actions/workflows/ci.yml/badge.svg)](https://github.com/theMobiusStrip/agentpay-guard/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 ![Node ≥22](https://img.shields.io/badge/node-%E2%89%A522-brightgreen)
-[![npm agentpay-guard](https://img.shields.io/npm/v/@themobiusstrip/agentpay-guard?label=agentpay-guard&color=cb3837)](https://www.npmjs.com/package/@themobiusstrip/agentpay-guard)
-[![npm x402-idempotency-middleware](https://img.shields.io/npm/v/@themobiusstrip/x402-idempotency-middleware?label=x402-idempotency-middleware&color=cb3837)](https://www.npmjs.com/package/@themobiusstrip/x402-idempotency-middleware)
+[![npm agentpay-guard](https://img.shields.io/npm/v/@themobiusstrip/agentpay-guard?label=agentpay-guard&color=blueviolet)](https://www.npmjs.com/package/@themobiusstrip/agentpay-guard)
+[![npm x402-idempotency-middleware](https://img.shields.io/npm/v/@themobiusstrip/x402-idempotency-middleware?label=x402-idempotency-middleware&color=brightgreen)](https://www.npmjs.com/package/@themobiusstrip/x402-idempotency-middleware)
+[![npm agentpay-proxy](https://img.shields.io/npm/v/@themobiusstrip/agentpay-proxy?label=agentpay-proxy&color=cb3837)](https://www.npmjs.com/package/@themobiusstrip/agentpay-proxy)
 
 **Hard spending limits for AI agents that pay over x402 — enforced below the LLM,
 before anything is signed, fail-closed.** agentpay-guard installs on x402 v2's
@@ -34,7 +35,7 @@ code, with the worst case bounded in dollars.
 - **[`@themobiusstrip/x402-idempotency-middleware`](https://www.npmjs.com/package/@themobiusstrip/x402-idempotency-middleware)** — replay defense for the **resource server** (the API being paid — e.g. a paid weather API or MCP tool server), keyed on the
   payer-signed EIP-3009 authorization (claim-with-lease + cached response). Covers
   the attack class the payer-side plugin structurally can't see.
-- **`@themobiusstrip/agentpay-proxy`** (`packages/agentpay-proxy`) — the guard's
+- **[`@themobiusstrip/agentpay-proxy`](https://www.npmjs.com/package/@themobiusstrip/agentpay-proxy)** — the guard's
   flagship deployment as a ready-to-run service: x402 client + guard + signer in
   one out-of-agent process, agent gets a single `paid_fetch` capability over HTTP
   or MCP (`npx @themobiusstrip/agentpay-proxy`, `agentpay-proxy mcp`).
