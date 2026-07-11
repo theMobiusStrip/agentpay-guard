@@ -1,5 +1,11 @@
 # x402-idempotency-middleware
 
+[![npm](https://img.shields.io/npm/v/@themobiusstrip/x402-idempotency-middleware?color=cb3837)](https://www.npmjs.com/package/@themobiusstrip/x402-idempotency-middleware)
+
+```bash
+npm i @themobiusstrip/x402-idempotency-middleware
+```
+
 Server-side reference middleware for the **protocol-replay** class the client
 plugin structurally cannot see: the client signer cannot stop an already-emitted
 authorization from being replayed — that is a resource-server concern.

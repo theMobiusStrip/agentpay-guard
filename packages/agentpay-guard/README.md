@@ -1,5 +1,11 @@
 # agentpay-guard
 
+[![npm](https://img.shields.io/npm/v/@themobiusstrip/agentpay-guard?color=cb3837)](https://www.npmjs.com/package/@themobiusstrip/agentpay-guard)
+
+```bash
+npm i @themobiusstrip/agentpay-guard
+```
+
 Stateful, agent-agnostic x402 v2 policy plugin. Installs over the native
 `onBeforePaymentCreation` hook (pre-signing) and enforces:
 
