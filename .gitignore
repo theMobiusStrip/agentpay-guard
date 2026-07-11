@@ -7,6 +7,7 @@ dist/
 coverage/
 .DS_Store
 spike/e2e/.wallet.json
+.agentpay-proxy-wallet.json
 
 # IDE
 *.code-workspace
@@ -19,6 +20,7 @@ agentpay-guard-PLAN.md
 # Private milestone/process docs
 docs/process/
 docs/deck.md
+docs/tutorials/
 
 # Private local leak-term list for .githooks/pre-commit
 .githooks/leak-terms.local

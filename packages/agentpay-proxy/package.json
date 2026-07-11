@@ -1,0 +1,64 @@
+{
+  "name": "@themobiusstrip/agentpay-proxy",
+  "version": "0.0.1",
+  "description": "Guarded x402 payment proxy for AI agents: x402 client + agentpay-guard + signer in one out-of-agent process. Agent gets one capability (paid_fetch); policy decides every payment below the model, fail-closed.",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "bin": {
+    "agentpay-proxy": "dist/cli.js"
+  },
+  "files": ["dist", "README.md", "LICENSE"],
+  "keywords": [
+    "x402",
+    "payment-proxy",
+    "agentic-payments",
+    "mcp",
+    "eip-3009",
+    "spend-limit",
+    "agent",
+    "base",
+    "usdc",
+    "fail-closed"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/theMobiusStrip/agentpay-guard.git",
+    "directory": "packages/agentpay-proxy"
+  },
+  "bugs": {
+    "url": "https://github.com/theMobiusStrip/agentpay-guard/issues"
+  },
+  "homepage": "https://github.com/theMobiusStrip/agentpay-guard/tree/main/packages/agentpay-proxy#readme",
+  "author": "agentpay-guard contributors",
+  "license": "MIT",
+  "engines": {
+    "node": ">=22"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "test": "vitest run",
+    "prepack": "npm run build"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.0",
+    "@themobiusstrip/agentpay-guard": "0.0.2",
+    "@x402/evm": "2.17.0",
+    "@x402/fetch": "2.17.0",
+    "express": "5.1.0",
+    "viem": "2.31.7",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/express": "5.0.3"
+  }
+}
