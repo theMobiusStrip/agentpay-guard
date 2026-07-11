@@ -3,7 +3,8 @@
 [![CI](https://github.com/theMobiusStrip/agentpay-guard/actions/workflows/ci.yml/badge.svg)](https://github.com/theMobiusStrip/agentpay-guard/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 ![Node ≥22](https://img.shields.io/badge/node-%E2%89%A522-brightgreen)
-![x402 pinned](https://img.shields.io/badge/%40x402-2.17.0-8b5cf6)
+[![npm agentpay-guard](https://img.shields.io/npm/v/@themobiusstrip/agentpay-guard?label=agentpay-guard&color=cb3837)](https://www.npmjs.com/package/@themobiusstrip/agentpay-guard)
+[![npm x402-idempotency-middleware](https://img.shields.io/npm/v/@themobiusstrip/x402-idempotency-middleware?label=x402-idempotency-middleware&color=cb3837)](https://www.npmjs.com/package/@themobiusstrip/x402-idempotency-middleware)
 
 **Hard spending limits for AI agents that pay over x402 — enforced below the LLM,
 before anything is signed, fail-closed.** agentpay-guard installs on x402 v2's
@@ -26,14 +27,14 @@ code, with the worst case bounded in dollars.
 
 ## What ships
 
-- **`agentpay-guard`** — the client plugin. Atomic budget cap spanning the
+- **[`@themobiusstrip/agentpay-guard`](https://www.npmjs.com/package/@themobiusstrip/agentpay-guard)** — the client plugin. Atomic budget cap spanning the
   sign→settle gap (rolling window + principal aggregate), trusted-intent
   constraint check, duplicate-auth guard. Everything outside the MVP envelope
   (`exact` + EIP-3009 + Base Sepolia USDC) fails closed.
-- **`x402-idempotency-middleware`** — the server-side replay defense, keyed on the
+- **[`@themobiusstrip/x402-idempotency-middleware`](https://www.npmjs.com/package/@themobiusstrip/x402-idempotency-middleware)** — replay defense for the **resource server** (the API being paid — e.g. a paid weather API or MCP tool server), keyed on the
   payer-signed EIP-3009 authorization (claim-with-lease + cached response). Covers
-  the attack class a client structurally can't see.
-- **DrainBench** (`packages/drainbench`) — a reproducible, offline, deterministic
+  the attack class the payer-side plugin structurally can't see.
+- **DrainBench** (`packages/drainbench`, private) — a reproducible, offline, deterministic
   harm benchmark: the same attacks with and without the guard, losses measured in
   dollars (below).
 
@@ -71,6 +72,10 @@ npm run -w @agentpay-guard/spike hook-probe # offline SDK probe (8/8, no funds)
 ```
 
 ## Using the plugin
+
+```bash
+npm i @themobiusstrip/agentpay-guard
+```
 
 ```ts
 import { wrapFetchWithPayment, x402Client } from "@x402/fetch";
