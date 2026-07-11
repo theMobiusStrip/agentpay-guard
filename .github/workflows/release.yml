@@ -1,0 +1,46 @@
+name: release
+
+# Publish the two public packages (agentpay-guard, x402-idempotency-middleware)
+# to npmjs. Private workspaces (root, drainbench, examples, spike) are skipped by
+# `npm publish --workspaces`. Trigger by pushing a version tag (e.g. `v0.1.0`)
+# whose number matches the packages' package.json version, or run manually.
+#
+# Requires repo secret NPM_TOKEN (an npm automation/granular token with publish
+# rights). Provenance needs id-token: write + a public repo + the `repository`
+# field in each package.json.
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          registry-url: "https://registry.npmjs.org"
+      - run: npm ci
+      # Release gate: never publish a tree that does not build/lint/test green.
+      - run: npm run build
+      - run: npx tsc -b
+      - run: npm run lint
+      - run: npx vitest run
+      # Publish the two public packages BY NAME (never --workspaces: that would
+      # also target private workspaces if their `private` flag ever regressed).
+      # --provenance attests the build to the npm registry.
+      - run: npm publish --provenance --access public -w packages/agentpay-guard -w packages/x402-idempotency-middleware
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

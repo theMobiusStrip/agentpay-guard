@@ -17,7 +17,7 @@ import {
   type AgentPayGuard,
   type Policy,
   type VerifiedMandate,
-} from "agentpay-guard";
+} from "@themobiusstrip/agentpay-guard";
 import { BASE_SEPOLIA, USDC } from "./scenario.js";
 
 // Fixed, well-known test key (NOT a secret) so the payer address is reproducible.

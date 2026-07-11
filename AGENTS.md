@@ -12,8 +12,8 @@ harm-metric benchmark. npm workspaces monorepo. See `README.md` for the full sto
 ## Layout
 
 ```
-packages/agentpay-guard/               the client plugin (the deliverable, published)
-packages/x402-idempotency-middleware/  server replay middleware (published)
+packages/agentpay-guard/               the client plugin (the deliverable, publishable)
+packages/x402-idempotency-middleware/  server replay middleware (publishable)
 packages/drainbench/                   benchmark harness + agent scaffold (private)
 examples/                              two worked examples (claude-proxy, raw-viem)
 spike/                                 G0 hook probe (offline) + e2e harness (needs funds)
