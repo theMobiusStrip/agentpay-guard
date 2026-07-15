@@ -1,6 +1,6 @@
 {
   "name": "@themobiusstrip/x402-idempotency-middleware",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Server-side reference middleware: atomic claim-with-lease + cached-response idempotency keyed on the payer-signed EIP-3009 authorization (EIP-712 digest), not the client-supplied payment-identifier.",
   "type": "module",
   "main": "./dist/index.js",

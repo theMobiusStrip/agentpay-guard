@@ -1,6 +1,6 @@
 {
   "name": "@themobiusstrip/agentpay-guard",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Stateful x402 policy plugin: atomic reserve-before-sign budget cap, trusted intent constraint check, duplicate-authorization guard. Fail-closed outside the MVP envelope.",
   "type": "module",
   "main": "./dist/index.js",
