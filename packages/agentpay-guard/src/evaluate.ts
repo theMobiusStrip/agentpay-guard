@@ -64,14 +64,32 @@ export async function evaluatePayment(
   // the SDK turns into validBefore, and re-confirm the signed value post-signing.
   const windowSeconds = Math.floor(policy.windowMs / 1000);
   const horizonCeiling = Math.min(policy.validBeforeCeilingSeconds, windowSeconds);
-  const horizonSeconds = payment.maxTimeoutSeconds ?? policy.validBeforeCeilingSeconds;
-  if (payment.maxTimeoutSeconds !== undefined && payment.maxTimeoutSeconds > horizonCeiling) {
+  // Merchant-controlled horizon. FAIL CLOSED on anything not a finite,
+  // non-negative number within the ceiling. `undefined` => no server-requested
+  // horizon, fall back to the policy ceiling. A bare `> ceiling` check is NOT
+  // enough: NaN forgives every comparison (`NaN > x` and `NaN < x` are both
+  // false), so a NaN/non-numeric maxTimeoutSeconds would slip the clamp and then
+  // poison safeReleaseAt (=> NaN => reservation never expires, immortal cap hold
+  // = denial-of-wallet), dedupTtl (=> NaN => dedup disabled), and the post-sign
+  // validBefore bound. Guard it exactly like guard.ts guards the SIGNED
+  // validBefore. Compute horizonSeconds only AFTER this validation so it is
+  // always finite.
+  const requestedHorizon = payment.maxTimeoutSeconds;
+  if (
+    requestedHorizon !== undefined &&
+    !(
+      Number.isFinite(requestedHorizon) &&
+      requestedHorizon >= 0 &&
+      requestedHorizon <= horizonCeiling
+    )
+  ) {
     return block(
       "valid_before_too_far",
-      `requested validity ${payment.maxTimeoutSeconds}s exceeds ceiling ${horizonCeiling}s`,
+      `requested validity ${requestedHorizon}s invalid or exceeds ceiling ${horizonCeiling}s`,
       "validbefore-clamp",
     );
   }
+  const horizonSeconds = requestedHorizon ?? policy.validBeforeCeilingSeconds;
 
   // Static payee allowlist (in addition to the mandate).
   if (
@@ -94,7 +112,10 @@ export async function evaluatePayment(
     policy.maxClockSkewMs,
   );
 
-  const mandateId = mandate?.mandateId ?? dedup.mandateId ?? "__no_mandate__";
+  // Real mandate id (undefined when none) drives dedup identity; the sentinel is
+  // only for reservation attribution, and must NOT read as a dedup discriminator.
+  const realMandateId = mandate?.mandateId ?? dedup.mandateId;
+  const mandateId = realMandateId ?? "__no_mandate__";
 
   const reserve = await store.tryReserve({
     principalId,
@@ -124,11 +145,30 @@ export async function evaluatePayment(
   }
 
   // Duplicate-authorization guard, keyed on payer-owned identity (§control #3).
+  // A `undefined` key means "no meaningful payer-owned purchase identity" (see
+  // deriveDedupKey): skip the client-side dedup entirely — the cumulative cap is
+  // the backstop (a re-sign mints a fresh nonce the server middleware does not
+  // collapse) — rather than latch on an asset-only key that would false-block
+  // every distinct purchase.
+  const derivedKey = deriveDedupKey(payment, {
+    ...dedup,
+    ...(realMandateId !== undefined ? { mandateId: realMandateId } : {}),
+  });
+  if (derivedKey === undefined) {
+    return {
+      decision: "allow",
+      reason: "ok",
+      message: "authorized",
+      matchedRule: "budget+intent",
+      reservationId: reserve.reservationId,
+    };
+  }
+
   // Prefix with principalId: dedup state is store-global, so an unscoped key
   // would let one principal's key falsely block (or, via removeDedup, un-guard)
   // another principal sharing the store. TTL includes the skew term so the key
   // never expires before the matching reservation's safeReleaseAt.
-  const dedupKey = `${principalId}|${deriveDedupKey(payment, { ...dedup, mandateId })}`;
+  const dedupKey = `${principalId}|${derivedKey}`;
   const dedupTtl = horizonSeconds * 1000 + policy.reorgMarginMs + policy.maxClockSkewMs;
   const firstSighting = await store.putIfAbsent(dedupKey, dedupTtl, now);
   if (!firstSighting) {

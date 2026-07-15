@@ -180,6 +180,50 @@ describe("evaluate: duplicate-authorization guard", () => {
     );
     expect(jittered.reason).toBe("duplicate_authorization");
   });
+
+  it("does NOT collapse distinct purchases when there is no payer id, mandate, or resource", async () => {
+    // Regression: the degenerate fallback key was asset-only (constant), so it
+    // latched the principal to a single payment and false-blocked every later
+    // DISTINCT purchase. With no distinguishing material we now skip client-side
+    // dedup entirely (cap is the backstop) instead of over-blocking.
+    const store = new InMemoryAtomicStore();
+    const policy = testPolicy({ profile: "budget-only", perMandateCap: 10_000_000n });
+    const bare = (o: Partial<ResolvedPayment> = {}): ResolvedPayment => ({
+      scheme: "exact",
+      network: BASE_SEPOLIA,
+      asset: USDC,
+      payTo: "0xmerchant",
+      value: 100_000n,
+      maxTimeoutSeconds: 20,
+      ...o, // no resourceUrl
+    });
+    const a = await evaluatePayment({ payment: bare(), dedup: {}, now: 1000 }, deps(store, policy));
+    const b = await evaluatePayment({ payment: bare({ payTo: "0xother" }), dedup: {}, now: 1001 }, deps(store, policy));
+    const c = await evaluatePayment({ payment: bare(), dedup: {}, now: 1002 }, deps(store, policy));
+    expect(a.decision).toBe("allow");
+    expect(b.decision).toBe("allow"); // distinct payee, not a false duplicate
+    expect(c.decision).toBe("allow"); // repeat of `a` also allowed (dedup skipped)
+    // No dedup key surfaced when skipped.
+    expect(a.dedupKey).toBeUndefined();
+  });
+
+  it("still dedups on a resource url alone (intended anti-jitter tradeoff)", async () => {
+    // With a resource url present (but no payer id/mandate), same-(resource,asset)
+    // purchases ARE treated as duplicates on purpose. Documented in SECURITY.md;
+    // wire a paymentIdentifier/intentId to distinguish distinct same-url buys.
+    const store = new InMemoryAtomicStore();
+    const policy = testPolicy({ profile: "budget-only", perMandateCap: 10_000_000n });
+    const first = await evaluatePayment(
+      { payment: payment({ resourceUrl: "https://api/x" }), dedup: {}, now: 1000 },
+      deps(store, policy),
+    );
+    expect(first.decision).toBe("allow");
+    const repeat = await evaluatePayment(
+      { payment: payment({ resourceUrl: "https://api/x", value: 100_001n }), dedup: {}, now: 1001 },
+      deps(store, policy),
+    );
+    expect(repeat.reason).toBe("duplicate_authorization");
+  });
 });
 
 describe("evaluate: budget cap", () => {

@@ -15,7 +15,10 @@ try to make an agent sign a payment it should not. Enforcement runs at x402 v2's
   budget whose accounting **spans the sign→settle gap** and reconciles crash-safely;
 - binds the about-to-be-signed `{ payTo, value, asset, network }` to a **trusted,
   provenance-verified mandate** (fails safe when the only "intent" is agent-derived);
-- prevents **our** agent from double-signing one logical purchase.
+- prevents **our** agent from double-signing one logical purchase **when a
+  payer-owned id (paymentIdentifier/intentId), mandate, or resource is present**;
+  with none of these the client-side guard is skipped and the budget cap is the
+  sole backstop (see `SECURITY.md` → Honest limitations).
 
 The server-side `x402-idempotency-middleware` defends **protocol replay** at the
 resource server — the layer that owns it.

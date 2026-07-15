@@ -43,7 +43,7 @@ Each answers a *different* question; they are complementary, not redundant.
 | **MVP envelope** | Is this the one slice we enforce? | fail-closed allowlist (`policy/envelope.ts`) | **Yes** — deny by default; unknown scheme/network/asset blocks |
 | **Atomic budget cap** | Over the cumulative cap? | reserve-before-sign atomic store (`store/`) | **Yes**, for spend accounting — spans sign→settle, expires against an authoritative clock |
 | **Trusted intent check** | Right payee / amount / asset? | provenance-verified mandate (`policy/intent.ts`) | **Conditional** — only as strong as the mandate's provenance; fails safe when intent is agent-derived |
-| **Duplicate-auth guard** | Double-sign one purchase? | payer-owned dedup key (`policy/dedup.ts`) | **Partial** — the cap is the backstop for jittered re-presentation |
+| **Duplicate-auth guard** | Double-sign one purchase? | payer-owned dedup key (`policy/dedup.ts`) | **Partial** — needs a payer-owned id to be precise; the cap is the backstop for jittered re-presentation (see Honest limitations) |
 | **Server replay middleware** | Replay of a settled authorization? | payer-signed-auth idempotency (`x402-idempotency-middleware`) | **Yes**, server-side — the client structurally can't see this |
 | **Out-of-process signer** | Does the agent hold the key? | deployment topology (payment-proxy) | **Yes — the precondition.** NOT enforced by the plugin; the flagship demo satisfies it |
 
@@ -77,6 +77,21 @@ Each answers a *different* question; they are complementary, not redundant.
   bait-and-switch are **not** caught in that profile (the cap is the only control) —
   measured and disclosed in DrainBench. Use `mandate-required` when the ecosystem
   emits mandates.
+- **The duplicate-auth guard needs a payer-owned identity.** It keys on a
+  payer-set `paymentIdentifier` or `intentId`. Absent both, it falls back to
+  `(mandate, resourceUrl, asset)` and treats distinct purchases sharing that tuple
+  as duplicates — an intentional anti-jitter tradeoff, not per-purchase precision.
+  Note `resourceUrl` is merchant-supplied, so in this weak config a merchant can
+  influence whether the fallback fires. With **none** of payer-id/mandate/resourceUrl
+  present, the fallback would be asset-only (constant), so client-side dedup is
+  **skipped** rather than latching the principal to a single payment. The **budget
+  cap is the sole backstop** for the payer-side double-pay this exposes
+  (`unauthorized_payer_outflow`): the agent double-signing one purchase mints two
+  *distinct* EIP-3009 nonces, and the server replay middleware keys on
+  `(token, from, nonce)` — it collapses only *same-nonce* re-presentation (a
+  different victim, `unpaid_service_cost`), so it does **not** bound this. Wire
+  `resolveDedupContext` with a payer-owned id to distinguish distinct same-resource
+  purchases and to get precise client-side duplicate defense.
 - **Preemption / reorg are analyzed, not fully client-defended.** The client owns
   only the validity-window clamp; confirmation-depth gating and ordering are
   server-side. A merchant that settles then withholds service (`paid_without_service`)

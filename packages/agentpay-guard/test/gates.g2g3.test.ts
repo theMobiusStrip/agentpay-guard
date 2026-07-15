@@ -121,6 +121,28 @@ describe("G3: envelope + adversarial inputs fail closed", () => {
     expect((res as { reason: string }).reason).toContain("valid_before_too_far");
   });
 
+  // Fail-OPEN regression: a NaN/non-finite/negative maxTimeoutSeconds must NOT
+  // slip the clamp. NaN forgives `>` so a bare upper-bound check let it through,
+  // then NaN poisoned safeReleaseAt (immortal hold), dedupTtl, and the post-sign
+  // validBefore bound. Each must fail closed AND leave no cap hold behind.
+  for (const [label, bad] of [
+    ["NaN", NaN],
+    ["+Infinity", Infinity],
+    ["negative", -1],
+  ] as const) {
+    it(`${label} validity horizon fails closed with no immortal hold`, async () => {
+      const store = new InMemoryAtomicStore();
+      const c = install(store);
+      const res = await c.before(ctx(req({ maxTimeoutSeconds: bad })));
+      expect(res).toMatchObject({ abort: true });
+      expect((res as { reason: string }).reason).toContain("valid_before_too_far");
+      // Blocked before tryReserve => no reservation, so nothing can become an
+      // immortal (never-expiring) cap hold.
+      const committed = await store.committedAmount("p1", "__no_mandate__", 1_000_000, 60_000);
+      expect(committed).toBe(0n);
+    });
+  }
+
   it("store-unavailable (tryReserve throws) fails closed via the catch-all", async () => {
     const brokenStore: AtomicStore = {
       tryReserve: async () => { throw new Error("store down"); },

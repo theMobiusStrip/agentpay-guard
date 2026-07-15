@@ -139,13 +139,16 @@ spots. This is a process check, not a containment boundary.
   drainbench, bench, readme, agents, ci).
 - **Body:** required. Caveman it (style below) — minimum words for the *why*.
   Wrap at ~72 chars.
+- **PR body:** caveman too (style below), same bar as the commit body —
+  summary, bugs/changes, tests. No fluff sections.
 - **No process narrative** in commit/PR text — no conversation context, no cited
   sources, no timings/durations, no prompts, no "as requested". Describe the change
   and its rationale, nothing about how it was produced.
 
 ## Comment & doc style — caveman
 
-Code comments, prose docs, and commit bodies use **caveman** compression: drop
+Code comments, prose docs, commit messages, and PR bodies use **caveman**
+compression: drop
 articles, filler (just/really/basically), and hedging; fragments are fine; prefer
 short synonyms.
 Keep **exact**: technical terms, identifiers, code blocks, URLs, error strings, and
