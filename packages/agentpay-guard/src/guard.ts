@@ -63,6 +63,15 @@ interface PendingEntry {
   reservedAtSeconds: number;
   horizonSeconds: number;
   dedupKey?: string;
+  /**
+   * Stamped true when this entry ever coexisted in the pre-sign queue with a
+   * sibling of the same requirements-signature. A fungible FIFO pop cannot then
+   * be trusted to attribute a pre-sign failure to the right dedup key, so
+   * onFailure must RETAIN (not free) this entry's key. The stamp rides the entry
+   * object through shift/unshift and into signedByNonce, so it survives a signed
+   * sibling draining out of `pending` — the case a signature-level counter missed.
+   */
+  contended?: boolean;
 }
 
 function requirementsSignature(r: X402PaymentRequirementsLike): string {
@@ -129,9 +138,14 @@ export class AgentPayGuard {
   /**
    * Pre-sign handoff queue: RESERVED entries awaiting their after/failure hook,
    * keyed by requirements-signature. Entries within a signature group are
-   * fungible (identical amount/payTo/horizon), so before→after|failure pops any
-   * of them — mis-ordering across concurrent identical payments is amount-neutral
-   * and never crosses a reserved entry with a signed one.
+   * fungible for CAP accounting (identical amount/payTo/horizon), so
+   * before→after|failure pops any of them — mis-ordering across concurrent
+   * identical payments is amount-neutral and never crosses a reserved entry with
+   * a signed one. The one field that is NOT fungible is `dedupKey` (distinct
+   * payer-owned ids for distinct purchases): a FIFO pop can therefore attribute a
+   * failure to the wrong key. We stamp `entry.contended` whenever two entries
+   * coexist here (see pushPending) so onFailure only frees a key whose entry was
+   * never concurrent — provably correctly attributed.
    */
   private readonly pending = new Map<string, PendingEntry[]>();
   /**
@@ -150,10 +164,27 @@ export class AgentPayGuard {
     private readonly opts: InstallOptions,
   ) {}
 
+  /**
+   * Mark every entry currently queued under `sig` as contended. Called whenever
+   * the queue holds ≥2 entries — the exact condition under which a fungible FIFO
+   * pop can mis-attribute a dedup key. The stamp is per-ENTRY (not per-signature),
+   * so it persists on an entry that later signs and drains out of `pending`, and a
+   * fresh, genuinely-uncontended entry arriving later is NOT tainted by it. This
+   * is what a signature-level counter got wrong: it reset when `pending` drained,
+   * even while a signed sibling with a live, possibly-mis-attributed key remained.
+   */
+  private markContended(q: PendingEntry[]): void {
+    if (q.length > 1) for (const e of q) e.contended = true;
+  }
+
   private pushPending(sig: string, entry: PendingEntry): void {
     const q = this.pending.get(sig);
-    if (q) q.push(entry);
-    else this.pending.set(sig, [entry]);
+    if (q) {
+      q.push(entry);
+      this.markContended(q);
+    } else {
+      this.pending.set(sig, [entry]);
+    }
   }
 
   private shiftPending(sig: string): PendingEntry | undefined {
@@ -166,8 +197,12 @@ export class AgentPayGuard {
 
   private unshiftPending(sig: string, entry: PendingEntry): void {
     const q = this.pending.get(sig);
-    if (q) q.unshift(entry);
-    else this.pending.set(sig, [entry]);
+    if (q) {
+      q.unshift(entry);
+      this.markContended(q);
+    } else {
+      this.pending.set(sig, [entry]);
+    }
   }
 
   async before(
@@ -219,7 +254,19 @@ export class AgentPayGuard {
         : "block";
       this.audit({ kind: "escalate", reservationId: decision.reservationId, detail: handled });
       if (handled !== "allow") {
-        await this.store.transition(decision.reservationId, "reserved", "released");
+        const released = await this.store.transition(
+          decision.reservationId,
+          "reserved",
+          "released",
+        );
+        // Un-consume the dedup key (exact, known here — no fungible pop) so a
+        // later legitimate re-attempt of the escalated payment is not falsely
+        // blocked as a duplicate. Mirrors onFailure's release path: only when the
+        // CAS actually released our reservation (escalation is strictly pre-sign,
+        // so this can never touch a signed hold's key regardless).
+        if (released && decision.dedupKey !== undefined) {
+          await this.store.removeDedup(decision.dedupKey);
+        }
         return {
           decision: "block",
           reason: "escalated",
@@ -327,10 +374,16 @@ export class AgentPayGuard {
     const sig = requirementsSignature(ctx.selectedRequirements);
     const entry = this.shiftPending(sig);
     if (!entry) return;
+    // If this entry ever coexisted with a sibling (entry.contended), the fungible
+    // FIFO pop cannot reliably say which payment failed, so freeing its dedup key
+    // could un-guard a DIFFERENT, possibly already-signed, payment. The stamp is
+    // carried on the entry itself, so it holds even after a signed sibling drained
+    // out of the pending queue.
+    const contended = entry.contended === true;
     // Pre-sign failure => the entry is still RESERVED (we only ever queue reserved
-    // entries here; signed entries live in signedByNonce). Release it and
-    // un-consume the dedup key so a legitimate retry is not falsely blocked. We
-    // never release a `signed` authorization's hold — that is a real overspend.
+    // entries here; signed entries live in signedByNonce). Release it. Releasing
+    // the (fungible) reservation is amount-neutral even under mis-attribution.
+    // We never release a `signed` authorization's hold — that is a real overspend.
     const ok = await this.store.transition(entry.reservationId, "reserved", "released");
     if (!ok) {
       this.audit({
@@ -340,13 +393,21 @@ export class AgentPayGuard {
       });
       return;
     }
-    if (entry.dedupKey !== undefined) {
+    // Un-consume the dedup key so a legitimate retry is not falsely blocked — but
+    // ONLY when the group was uncontended, so the popped entry provably IS the
+    // failed payment. Under contention, retain the key (fail toward over-block:
+    // the failed payment's retry waits out the TTL) rather than risk freeing a
+    // signed payment's key. The cap + server middleware remain the backstops.
+    if (entry.dedupKey !== undefined && !contended) {
       await this.store.removeDedup(entry.dedupKey);
     }
     this.audit({
       kind: "released",
       reservationId: entry.reservationId,
-      detail: `pre-sign failure: ${ctx.error.message}`,
+      detail:
+        contended && entry.dedupKey !== undefined
+          ? `pre-sign failure (dedup key retained: signature contended): ${ctx.error.message}`
+          : `pre-sign failure: ${ctx.error.message}`,
     });
     return;
   }

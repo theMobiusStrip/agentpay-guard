@@ -167,6 +167,86 @@ describe("Finding 4: future-dated settle still counts after a backward clock cor
   });
 });
 
+describe("Finding 6: concurrent fungible signing does not free a signed payment's dedup key", () => {
+  // Two DISTINCT purchases (distinct payer ids) share one requirements signature
+  // and run concurrently. A FIFO pop in after()/onFailure can attribute a
+  // pre-sign failure to the WRONG entry. Freeing the popped entry's dedup key
+  // could then un-guard a DIFFERENT payment that actually SIGNED. Under
+  // contention we must retain keys (fail toward over-block), never free.
+  function installPids(pids: string[]) {
+    const store = new InMemoryAtomicStore();
+    const clock = new ManualClock(1_000_000_000);
+    const client = new FakeClient();
+    let i = 0;
+    installAgentPayGuard(client, {
+      policy: testPolicy({ perMandateCap: 1_000_000n }),
+      store,
+      principalId: "p1",
+      clock,
+      resolveDedupContext: () => ({ paymentIdentifier: pids[i++] }),
+    });
+    return { store, client };
+  }
+
+  it("retains the SIGNED payment's key when a concurrent sibling fails pre-sign", async () => {
+    // Order: before P1(pidA), before P2(pidB) [contended], after P2 signs
+    // [pops P1's entry, FIFO], onFailure P1 [pops P2's entry, has pidB].
+    // Buggy code freed pidB — but P2 SIGNED, so its key must stay consumed.
+    const { store, client } = installPids(["pidA", "pidB", "pidB"]);
+    const vb = String(1_000_000 + 20);
+    await client.before(beforeCtx()); // P1 -> pidA
+    await client.before(beforeCtx()); // P2 -> pidB (contended)
+    await client.after(afterCtx("0xbbb", vb)); // a sig signs (pops P1's fungible entry)
+    await client.failure({ ...beforeCtx(), error: new Error("P1 signer down") });
+
+    // Exactly one signed hold remains (cap-neutral under fungible mis-attribution).
+    const committed = await store.committedAmount("p1", "__no_mandate__", 1_000_000, 60_000);
+    expect(committed).toBe(100_000n);
+
+    // pidB must still be consumed: a re-presentation keyed pidB is blocked, i.e.
+    // the signed payment's client-side dedup guard was NOT bypassed.
+    const rep = await client.before(beforeCtx()); // uses pidB
+    expect(rep).toMatchObject({ abort: true });
+    expect((rep as { reason: string }).reason).toContain("duplicate");
+  });
+
+  it("still frees the key for an uncontended (sequential) pre-sign failure", async () => {
+    // No concurrency => the popped entry provably IS the failed payment => free it.
+    const { client } = installPids(["pidS", "pidS"]);
+    await client.before(beforeCtx()); // reserve pidS
+    await client.failure({ ...beforeCtx(), error: new Error("down") });
+    const retry = await client.before(beforeCtx()); // pidS again, key was freed
+    expect(retry).toBeUndefined();
+  });
+
+  it("retains the key even when a TOCTOU-divergent after() drains the queue mid-generation", async () => {
+    // Adversarial-review regression: a signature-level contended COUNTER reset when
+    // `pending` drained to 0, but a signed sibling's live key remained. A divergent
+    // after() that pops the last reserved entry (queue empties) then unshifts it on
+    // the TOCTOU throw would recreate a fresh, contended=false generation, letting
+    // the following onFailure free the SIGNED purchase's key. The per-entry stamp
+    // survives the drain, so the key stays retained.
+    const { store, client } = installPids(["p0", "p1", "p1"]);
+    const vb = String(1_000_000 + 20);
+    await client.before(beforeCtx()); // E0 -> p0
+    await client.before(beforeCtx()); // E1 -> p1  (both stamped contended)
+    await client.after(afterCtx("0xbbb", vb)); // clean sign pops E0 (FIFO) -> signed
+    // Divergent payTo on the last reserved entry: TOCTOU throw pops E1, empties the
+    // queue, then unshifts E1 back.
+    await expect(client.after(afterCtx("0xaaa", vb, "0xEVIL"))).rejects.toThrow(/diverged/);
+    await client.failure({ ...beforeCtx(), error: new Error("aborted after TOCTOU") });
+
+    // One signed hold remains (E0), cap-neutral.
+    const committed = await store.committedAmount("p1", "__no_mandate__", 1_000_000, 60_000);
+    expect(committed).toBe(100_000n);
+    // p1 must still be consumed: the signed purchase's client-side dedup guard was
+    // NOT bypassed by the drain-then-unshift.
+    const rep = await client.before(beforeCtx()); // uses p1
+    expect(rep).toMatchObject({ abort: true });
+    expect((rep as { reason: string }).reason).toContain("duplicate");
+  });
+});
+
 describe("Finding 5: dedup keys are principal-scoped", () => {
   it("two principals buying the same resource do not cross-block", async () => {
     const store = new InMemoryAtomicStore();

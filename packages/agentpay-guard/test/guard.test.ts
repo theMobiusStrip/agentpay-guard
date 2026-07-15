@@ -191,6 +191,25 @@ describe("guard: escalate (G3)", () => {
     const committed = await store.committedAmount("p1", "__no_mandate__", 1_000_000, 60_000);
     expect(committed).toBe(0n);
   });
+
+  it("escalate + block un-consumes the dedup key so a re-attempt is not falsely blocked", async () => {
+    // Regression: the escalation-deny path released the reservation but left the
+    // dedup key consumed, so a legitimate re-attempt of the same payment was
+    // wrongly blocked as `duplicate_authorization` instead of re-escalating.
+    const { client, store } = install({
+      escalationPolicy: () => true,
+      onEscalate: () => "block",
+      resolveDedupContext: () => ({ paymentIdentifier: "pid-esc" }),
+    });
+    const first = await client.before(ctx());
+    expect((first as { reason: string }).reason).toContain("escalated");
+    const retry = await client.before(ctx());
+    // Reaches escalation again (key was freed) rather than short-circuiting on dedup.
+    expect((retry as { reason: string }).reason).toContain("escalated");
+    expect((retry as { reason: string }).reason).not.toContain("duplicate");
+    const committed = await store.committedAmount("p1", "__no_mandate__", 1_000_000, 60_000);
+    expect(committed).toBe(0n);
+  });
 });
 
 describe("guard: exports", () => {
