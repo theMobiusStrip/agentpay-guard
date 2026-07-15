@@ -1,10 +1,10 @@
 name: release
 
-# Publish the two public packages to npmjs via OIDC TRUSTED PUBLISHING — no
+# Publish the public packages to npmjs via OIDC TRUSTED PUBLISHING — no
 # NPM_TOKEN stored anywhere. GitHub mints a short-lived OIDC token (id-token:
 # write) that npm exchanges for publish credentials, and attaches provenance.
 #
-# Prerequisites (one-time, per package, on npmjs.com):
+# Prerequisites (one-time, per package — incl. agentpay-proxy — on npmjs.com):
 #   1. The package must already exist. npm has no first-publish-via-OIDC
 #      (npm/cli#8544), so v0.0.1 is published locally by hand first.
 #   2. Package settings -> Trusted Publisher -> GitHub Actions:
@@ -17,10 +17,15 @@ name: release
 # Release: bump both package versions, then push a matching tag (e.g. v0.1.0).
 # The workflow verifies the tag equals both package.json versions and fails fast
 # otherwise, so the tag and the published version can never diverge.
+#
+# agentpay-proxy releases on its OWN cadence via a `proxy-v*` tag (e.g.
+# proxy-v0.0.2): same guard + gate, publishes only the proxy. The `v*` pattern
+# does not match `proxy-v*`, so the two flows never double-fire.
 on:
   push:
     tags:
       - "v*"
+      - "proxy-v*"
   workflow_dispatch:
 
 permissions:
@@ -41,18 +46,29 @@ jobs:
         with:
           node-version: "22"
           registry-url: "https://registry.npmjs.org"
-      # Version guard: a v* tag MUST equal both package.json versions (lockstep
-      # release). Fails fast — before the build gate — if you tagged without
-      # bumping, so the tag and the published version can never diverge.
+      # Version guard: a v* tag MUST equal both lockstep package.json versions;
+      # a proxy-v* tag MUST equal the proxy's. Fails fast — before the build
+      # gate — if you tagged without bumping, so the tag and the published
+      # version can never diverge.
       - name: Verify tag matches package versions
         if: github.ref_type == 'tag'
         run: |
-          TAG="${GITHUB_REF_NAME#v}"
-          for pkg in packages/agentpay-guard packages/x402-idempotency-middleware; do
-            V="$(node -p "require('./$pkg/package.json').version")"
-            [ "$V" = "$TAG" ] || { echo "::error::tag v$TAG != $pkg@$V — bump package.json to match the tag"; exit 1; }
-          done
-          echo "tag v$TAG matches both packages ($TAG)"
+          case "$GITHUB_REF_NAME" in
+            proxy-v*)
+              TAG="${GITHUB_REF_NAME#proxy-v}"
+              V="$(node -p "require('./packages/agentpay-proxy/package.json').version")"
+              [ "$V" = "$TAG" ] || { echo "::error::tag proxy-v$TAG != agentpay-proxy@$V — bump package.json to match the tag"; exit 1; }
+              echo "tag proxy-v$TAG matches agentpay-proxy ($TAG)"
+              ;;
+            *)
+              TAG="${GITHUB_REF_NAME#v}"
+              for pkg in packages/agentpay-guard packages/x402-idempotency-middleware; do
+                V="$(node -p "require('./$pkg/package.json').version")"
+                [ "$V" = "$TAG" ] || { echo "::error::tag v$TAG != $pkg@$V — bump package.json to match the tag"; exit 1; }
+              done
+              echo "tag v$TAG matches both packages ($TAG)"
+              ;;
+          esac
       # OIDC trusted publishing needs npm >= 11.5.1; node 22 ships npm 10.
       - run: npm install -g npm@latest
       - run: npm ci
@@ -61,8 +77,19 @@ jobs:
       - run: npx tsc -b
       - run: npm run lint
       - run: npx vitest run
-      # Publish the two public packages BY NAME (never --workspaces: that would
-      # also target private workspaces if their `private` flag ever regressed).
-      # No NODE_AUTH_TOKEN: npm authenticates via OIDC against the trusted
-      # publisher configured on npmjs.com, and --provenance is attested from it.
-      - run: npm publish --provenance --access public -w packages/agentpay-guard -w packages/x402-idempotency-middleware
+      # Publish BY NAME (never --workspaces: that would also target private
+      # workspaces if their `private` flag ever regressed). proxy-v* tags
+      # publish only the proxy; v* tags (and workflow_dispatch) publish the
+      # lockstep pair. No NODE_AUTH_TOKEN: npm authenticates via OIDC against
+      # the trusted publisher configured on npmjs.com, and --provenance is
+      # attested from it.
+      - name: Publish
+        run: |
+          case "$GITHUB_REF_NAME" in
+            proxy-v*)
+              npm publish --provenance --access public -w packages/agentpay-proxy
+              ;;
+            *)
+              npm publish --provenance --access public -w packages/agentpay-guard -w packages/x402-idempotency-middleware
+              ;;
+          esac

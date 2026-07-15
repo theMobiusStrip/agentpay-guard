@@ -1,6 +1,6 @@
 {
   "name": "@themobiusstrip/agentpay-proxy",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Guarded x402 payment proxy for AI agents: x402 client + agentpay-guard + signer in one out-of-agent process. Agent gets one capability (paid_fetch); policy decides every payment below the model, fail-closed.",
   "type": "module",
   "main": "./dist/index.js",
