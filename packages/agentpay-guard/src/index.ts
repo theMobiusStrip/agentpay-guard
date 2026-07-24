@@ -4,8 +4,9 @@
  * Installs over x402 v2's native client lifecycle hooks (enforcement at
  * onBeforePaymentCreation, pre-signing) and provides:
  *   1. atomic reserve-before-sign budget cap (rolling window, spans sign->settle)
- *   2. trusted intent / resource-binding constraint check
- *   3. local duplicate-authorization guard
+ *   2. mandate-independent per-payment ceiling
+ *   3. trusted intent / resource-binding constraint check
+ *   4. local duplicate-authorization guard
  * Everything outside the MVP envelope fails closed.
  */
 

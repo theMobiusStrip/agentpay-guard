@@ -16,10 +16,11 @@ npm i @themobiusstrip/agentpay-guard
 **Hard spending limits for AI agents that pay over x402 — enforced below the LLM,
 before anything is signed, fail-closed.** agentpay-guard installs on x402 v2's
 native client hook (`onBeforePaymentCreation`) and decides every payment against
-durable state: an atomic rolling-window budget (reserve-before-sign), payee/amount
-bound to a verified mandate, a duplicate-authorization guard, and a deny-by-default
-envelope. Agent- and signer-agnostic: the same plugin guards Claude / GPT /
-LangChain / raw scripts, over viem / Circle MPC / CDP signers.
+durable policy: an optional independent per-payment ceiling, atomic rolling-window
+budget (reserve-before-sign), payee/amount bound to a verified mandate, a
+duplicate-authorization guard, and a deny-by-default envelope. Agent- and
+signer-agnostic: the same plugin guards Claude / GPT / LangChain / raw scripts,
+over viem / Circle MPC / CDP signers.
 
 ## Why
 
@@ -38,10 +39,12 @@ code, with the worst case bounded in dollars.
 
 **[`@themobiusstrip/agentpay-guard`](https://www.npmjs.com/package/@themobiusstrip/agentpay-guard)**
 is the product. The client plugin enforces an atomic budget cap spanning the
-sign→settle gap (rolling window + principal aggregate), trusted-intent constraint
-check, and duplicate-auth guard. Everything outside the MVP envelope (`exact` +
-EIP-3009 + Base Sepolia USDC) fails closed. Includes the restart-safe
-`@themobiusstrip/agentpay-guard/sqlite` store entry for one-host deployments.
+sign→settle gap (rolling window + principal aggregate), optional
+mandate-independent per-payment ceiling, trusted-intent constraint check, and
+duplicate-auth guard.
+Everything outside the MVP envelope (`exact` + EIP-3009 + Base Sepolia USDC)
+fails closed. Includes the restart-safe `@themobiusstrip/agentpay-guard/sqlite`
+store entry for one-host deployments.
 
 ### Supporting artifacts
 
@@ -105,6 +108,7 @@ const policy: Policy = {
   profile: "budget-only",                 // or "mandate-required"
   windowMs: 60_000,
   perMandateCap: 1_000_000n,              // 1 USDC (6 decimals)
+  maxPaymentAmount: 250_000n,              // optional 0.25 USDC per-payment max
   principalAggregateCap: 5_000_000n,      // catches salami drain across mandates
   envelope: {
     schemes: ["exact"],

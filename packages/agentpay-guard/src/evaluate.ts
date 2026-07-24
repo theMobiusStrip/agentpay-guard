@@ -36,7 +36,7 @@ function block(
 
 /**
  * The full fail-closed decision flow. Order matters: cheap envelope checks first,
- * then the validity clamp, then intent, then the atomic reserve, then dedup.
+ * then the per-payment ceiling, validity clamp, intent, atomic reserve, dedup.
  *
  * Reserve-BEFORE-dedup with release-on-duplicate: we only consume a dedup key
  * once a reservation actually succeeded, and a losing duplicate releases its
@@ -57,6 +57,29 @@ export async function evaluatePayment(
   const fieldsFail = checkResolvedFields(payment);
   if (fieldsFail) {
     return block(fieldsFail, "resolved payment fields unavailable at hook", "resolved-fields");
+  }
+
+  const maxPaymentAmount: unknown = policy.maxPaymentAmount;
+  if (
+    maxPaymentAmount !== undefined &&
+    (typeof maxPaymentAmount !== "bigint" || maxPaymentAmount < 0n)
+  ) {
+    return block(
+      "policy_invalid",
+      "maxPaymentAmount must be a non-negative bigint",
+      "policy",
+    );
+  }
+
+  if (
+    maxPaymentAmount !== undefined &&
+    payment.value > maxPaymentAmount
+  ) {
+    return block(
+      "payment_amount_exceeds",
+      `payment amount ${payment.value} exceeds max ${maxPaymentAmount}`,
+      "per-payment-max",
+    );
   }
 
   // validBefore / horizon clamp (§5). At the hook the signed validBefore does not

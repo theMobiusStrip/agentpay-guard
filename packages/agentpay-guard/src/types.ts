@@ -57,6 +57,12 @@ export interface Policy {
   perMandateCap: bigint;
 
   /**
+   * Optional per-payment ceiling, atomic token units. Independent of mandates:
+   * applies in both policy profiles before reservation or dedup state changes.
+   */
+  maxPaymentAmount?: bigint;
+
+  /**
    * Optional principal-level aggregate cap across ALL mandates. This is what
    * actually catches salami/cumulative drain spread across mandates — a
    * per-mandate cap alone misses it (§2 control #1).
@@ -147,7 +153,9 @@ export type ReasonCode =
   | "envelope_network"
   | "envelope_asset"
   | "envelope_unresolved_fields"
+  | "policy_invalid"
   | "store_unavailable"
+  | "payment_amount_exceeds"
   | "cap_exceeded"
   | "aggregate_cap_exceeded"
   | "per_payee_limit"

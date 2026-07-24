@@ -144,6 +144,9 @@ try {
   const guardManifest = JSON.parse(
     readFileSync(join(guardPackage, "package.json"), "utf8"),
   );
+  const proxyManifest = JSON.parse(
+    readFileSync(join(proxyPackage, "package.json"), "utf8"),
+  );
   const sqliteExport = guardManifest.exports?.["./sqlite"];
   if (typeof sqliteExport?.import !== "string") {
     throw new Error(
@@ -177,6 +180,48 @@ try {
   });
   if (!reservation.ok) throw new Error("packed store reserve failed");
   await store.close();
+
+  const proxyExport = proxyManifest.exports?.["."];
+  if (typeof proxyExport?.import !== "string") {
+    throw new Error("packed proxy missing root import");
+  }
+  const proxyEntry = resolve(proxyPackage, proxyExport.import);
+  if (!proxyEntry.startsWith(proxyPackage)) {
+    throw new Error("proxy root did not resolve from packed package");
+  }
+  const { configFromEnv, createPaymentProxy } = await import(
+    pathToFileURL(proxyEntry).href
+  );
+  const maxConfig = configFromEnv({ MAX_PAYMENT: "1" });
+  const { guard: packedGuard, policy: packedPolicy } = createPaymentProxy(
+    `0x${"11".repeat(32)}`,
+    maxConfig,
+  );
+  if (packedPolicy.maxPaymentAmount !== 1n) {
+    throw new Error("packed proxy dropped MAX_PAYMENT policy");
+  }
+  const requirements = {
+    scheme: "exact",
+    network: "eip155:84532",
+    asset: "0x036cbd53842c5426634e7929541ec2318f3dcf7e",
+    amount: "2",
+    payTo: "0x2222222222222222222222222222222222222222",
+    maxTimeoutSeconds: 20,
+  };
+  const blocked = await packedGuard.before({
+    paymentRequired: {
+      x402Version: 2,
+      resource: { url: "https://example.test" },
+      accepts: [requirements],
+    },
+    selectedRequirements: requirements,
+  });
+  if (
+    blocked?.abort !== true ||
+    !blocked.reason.includes("payment_amount_exceeds")
+  ) {
+    throw new Error("packed proxy did not enforce MAX_PAYMENT");
+  }
 
   const port = await freePort();
   child = spawn(

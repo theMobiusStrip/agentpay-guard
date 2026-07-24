@@ -4,9 +4,9 @@
 [`agentpay-guard`](https://www.npmjs.com/package/@themobiusstrip/agentpay-guard),
 and the signing key live in ONE process, out of the agent's reach; the agent
 gets a single capability — `paid_fetch(url)` over HTTP or MCP. Every payment
-is decided by policy below the model, fail-closed: rolling-window budget with
-atomic reserve-before-sign, optional payee/amount mandate binding,
-duplicate-authorization guard, deny-by-default envelope
+is decided by policy below the model, fail-closed: optional independent
+per-payment ceiling, rolling-window budget with atomic reserve-before-sign, optional
+payee/amount mandate binding, duplicate-authorization guard, deny-by-default envelope
 (`exact` + Base Sepolia + USDC).
 
 ```
@@ -64,6 +64,7 @@ default `http://127.0.0.1:4020`) — it holds no keys. Claude then has one tool,
 | `HOST` / `PORT` | `127.0.0.1` / `4020` | bind address. Loopback by default — this process holds a key; authenticate the hop before exposing it |
 | `CAP` | `100000` | per-mandate cap per window, atomic USDC ($0.10) |
 | `AGG_CAP` | `200000` | aggregate cap across all mandates ($0.20) — salami-drain stop |
+| `MAX_PAYMENT` | off | hard maximum for each payment, atomic USDC; works without `MANDATE` or `PIN_PAYTO`; `0` blocks every positive payment |
 | `WINDOW_MS` | `300000` | rolling budget window |
 | `CEILING_S` | `300` | max authorization lifetime the proxy signs; effective ceiling `min(CEILING_S, WINDOW_MS/1000)` |
 | `STORE` | `sqlite` | `sqlite` for restart-safe state; `memory` only for disposable demos/tests |
@@ -72,7 +73,13 @@ default `http://127.0.0.1:4020`) — it holds no keys. Claude then has one tool,
 | `MANDATE=1` + `PIN_PAYTO`, `PIN_MAX` | off | mandate-required profile: bind every payment to this payee/max ($0.01 default max) |
 | `ALLOWED_HOSTS` | any | comma-separated allowlist of hosts `paid_fetch` may call. When set, the proxy also **refuses HTTP redirects** so an allowed host cannot redirect it to a disallowed one |
 
-Malformed money knobs throw at startup — no silent fallback.
+Malformed money knobs throw at startup — no silent fallback. Programmatic
+`maxPaymentAmount` must be a non-negative `bigint`; invalid runtime values throw
+before proxy creation.
+
+`MAX_PAYMENT` is not cumulative and does not bind a payee. Keep `CAP` /
+`AGG_CAP` for split-drain bounds; use mandate mode when payee or quoted-intent
+binding is available. With `MAX_PAYMENT` and `PIN_MAX`, both checks apply.
 
 SQLite opens, migrates, and recovers before listener starts. Recovered
 `reserved` / `signed` / `submitted` rows become `unknown` and keep full cap

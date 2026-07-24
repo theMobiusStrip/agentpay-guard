@@ -70,6 +70,15 @@ jobs:
           esac
       # OIDC trusted publishing needs npm >= 11.5.1; node 22 ships npm 10.
       - run: npm install -g npm@latest
+      # Proxy pins guard exactly. Refuse proxy publish until that guard version
+      # exists on npm; workspace resolution must not mask release-order errors.
+      - name: Verify proxy guard dependency is published
+        if: startsWith(github.ref_name, 'proxy-v')
+        run: |
+          REQUIRED="$(node -p "require('./packages/agentpay-proxy/package.json').dependencies['@themobiusstrip/agentpay-guard']")"
+          PUBLISHED="$(npm view "@themobiusstrip/agentpay-guard@$REQUIRED" version 2>/dev/null || true)"
+          [ "$PUBLISHED" = "$REQUIRED" ] || { echo "::error::agentpay-guard@$REQUIRED must be published before agentpay-proxy"; exit 1; }
+          echo "agentpay-guard@$REQUIRED is published"
       - run: npm ci
       # Release gate: never publish a tree that does not build/lint/test green.
       - run: npm run build

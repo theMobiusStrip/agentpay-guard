@@ -13,6 +13,8 @@ try to make an agent sign a payment it should not. Enforcement runs at x402 v2's
 
 - caps cumulative spend with an **atomic reserve-before-sign** rolling-window
   budget whose accounting **spans the sign→settle gap** and reconciles crash-safely;
+- optionally bounds every authorization with a **mandate-independent
+  per-payment ceiling** before reservation or dedup state changes;
 - binds the about-to-be-signed `{ payTo, value, asset, network }` to a **trusted,
   provenance-verified mandate** (fails safe when the only "intent" is agent-derived);
 - prevents **our** agent from double-signing one logical purchase **when a
