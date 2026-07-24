@@ -33,3 +33,7 @@ jobs:
       # DrainBench deterministic A/B + the stochastic demonstration.
       - run: npm run -w @agentpay-guard/drainbench bench
       - run: npm run -w @agentpay-guard/drainbench agent-demo
+      # Verify every public package contains built runtime + declarations.
+      - run: npm run pack:check
+      # Install packed artifacts without workspace links; exercise store + CLI.
+      - run: npm run pack:smoke

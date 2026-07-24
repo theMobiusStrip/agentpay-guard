@@ -41,7 +41,7 @@ Each answers a *different* question; they are complementary, not redundant.
 | Control | Question | Enforced by | A boundary? |
 | --- | --- | --- | --- |
 | **MVP envelope** | Is this the one slice we enforce? | fail-closed allowlist (`policy/envelope.ts`) | **Yes** — deny by default; unknown scheme/network/asset blocks |
-| **Atomic budget cap** | Over the cumulative cap? | reserve-before-sign atomic store (`store/`) | **Yes**, for spend accounting — spans sign→settle, expires against an authoritative clock |
+| **Atomic budget cap** | Over the cumulative cap? | reserve-before-sign atomic store (`store/`) | **Yes**, for spend accounting — spans sign→settle; proxy CLI state survives restart |
 | **Trusted intent check** | Right payee / amount / asset? | provenance-verified mandate (`policy/intent.ts`) | **Conditional** — only as strong as the mandate's provenance; fails safe when intent is agent-derived |
 | **Duplicate-auth guard** | Double-sign one purchase? | payer-owned dedup key (`policy/dedup.ts`) | **Partial** — needs a payer-owned id to be precise; the cap is the backstop for jittered re-presentation (see Honest limitations) |
 | **Server replay middleware** | Replay of a settled authorization? | payer-signed-auth idempotency (`x402-idempotency-middleware`) | **Yes**, server-side — the client structurally can't see this |
@@ -53,8 +53,12 @@ Each answers a *different* question; they are complementary, not redundant.
   anything outside the envelope blocks; the budget cap is atomic and cannot be
   raced past; intent binding fails safe.
 - **Spend accounting across the sign→settle gap** — a signed-but-unsettled
-  authorization holds the cap and reconciles crash-safely (this is the delta a
-  hook-local counter cannot represent).
+  authorization holds the cap. Restart-safe SQLite ships in the primary guard
+  package through its `/sqlite` entry, and proxy CLI uses it by default. Before
+  listening after restart, recovery atomically changes `reserved` / `signed` /
+  `submitted` rows to `unknown`; those rows hold cap through `safeReleaseAt +
+  original windowMs`. Lost responses cannot reopen budget while a last-instant
+  settlement remains inside its rolling window.
 - **Server-side replay defense** keyed on the payer-signed EIP-3009 authorization.
 
 ## Honest limitations (do not overclaim)
@@ -63,11 +67,22 @@ Each answers a *different* question; they are complementary, not redundant.
   and signs. Any self-caught error in the guard hook that falls through to `return;`
   is a **fail-open** hole. The guard's catch-all always returns `{ abort: true }`;
   a change that swallows an error without aborting reopens this.
-- **The in-memory store is single-process.** Two workers sharing a `principalId`
-  with per-process stores each get the full cap. A **shared atomic store** (Redis
-  Lua / Postgres serializable) is required for multi-worker; it must pass the G1
-  suite. The store is **trusted (TCB)** — fail-closed covers "store unavailable",
-  not a poisoned store.
+- **Store scope is explicit.** `InMemoryAtomicStore` is volatile,
+  single-process state for tests and disposable embedded use. The proxy CLI
+  defaults to restart-safe SQLite. SQLite V1 supports one active proxy process
+  per database; independent connections serialize cap operations, but
+  process-local lifecycle correlation still has one owner. PostgreSQL is
+  required for multi-worker / multi-host lifecycle ownership. Every shipped
+  store passes G1. Store remains **trusted (TCB)** — fail-closed covers
+  unavailable state, not a poisoned store.
+- **Crash recovery buys safety with availability.** RPC-free recovery treats
+  every recovered nonterminal row as `unknown` and keeps full amount reserved
+  through its recovery deadline. Recovery extends that deadline before expiry
+  when active rolling window grows; window contraction never shortens old rows.
+  Crash can over-block for one effective rolling window after authorization
+  becomes un-settleable. It cannot undercount a possibly settled payment.
+  Runtime store or lifecycle mutation failure latches proxy readiness false;
+  new paid requests stay blocked until restart/recovery.
 - **Intent binding is only as strong as the mandate.** EIP-3009 signs
   `{from,to,value,validAfter,validBefore,nonce}` — **not** merchant / resource URL /
   method. `payTo`/`value` bind cleanly; URL binding rests on a separately-signed

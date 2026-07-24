@@ -4,7 +4,7 @@ name: release
 # NPM_TOKEN stored anywhere. GitHub mints a short-lived OIDC token (id-token:
 # write) that npm exchanges for publish credentials, and attaches provenance.
 #
-# Prerequisites (one-time, per package — incl. agentpay-proxy — on npmjs.com):
+# Prerequisites (one-time, per package — guard, middleware, proxy — on npmjs.com):
 #   1. The package must already exist. npm has no first-publish-via-OIDC
 #      (npm/cli#8544), so v0.0.1 is published locally by hand first.
 #   2. Package settings -> Trusted Publisher -> GitHub Actions:
@@ -18,9 +18,8 @@ name: release
 # The workflow verifies the tag equals both package.json versions and fails fast
 # otherwise, so the tag and the published version can never diverge.
 #
-# agentpay-proxy releases on its OWN cadence via a `proxy-v*` tag (e.g.
-# proxy-v0.0.2): same guard + gate, publishes only the proxy. The `v*` pattern
-# does not match `proxy-v*`, so the two flows never double-fire.
+# SQLite ships inside agentpay-guard on the normal `v*` cadence.
+# agentpay-proxy releases on its own cadence through `proxy-v*`.
 on:
   push:
     tags:

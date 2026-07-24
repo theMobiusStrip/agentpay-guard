@@ -16,8 +16,8 @@
     "typecheck": "tsc -b",
     "lint": "eslint .",
     "pack:check": "npm pack --dry-run -w packages/agentpay-guard -w packages/x402-idempotency-middleware -w packages/agentpay-proxy",
-    "release:dry": "npm publish --dry-run -w packages/agentpay-guard -w packages/x402-idempotency-middleware -w packages/agentpay-proxy",
-    "release:first": "npm publish --access public -w packages/agentpay-guard -w packages/x402-idempotency-middleware -w packages/agentpay-proxy"
+    "pack:smoke": "node scripts/pack-smoke.mjs",
+    "release:dry": "npm publish --dry-run -w packages/agentpay-guard -w packages/x402-idempotency-middleware -w packages/agentpay-proxy"
   },
   "devDependencies": {
     "@types/node": "24.0.10",
@@ -28,6 +28,6 @@
     "vitest": "3.2.4"
   },
   "engines": {
-    "node": ">=22"
+    "node": ">=22.13.0"
   }
 }

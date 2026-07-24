@@ -28,15 +28,21 @@ export function reserveReq(
 ): ReserveRequest {
   const now = o.now;
   const validBeforeSeconds = Math.floor(now / 1000) + 30;
+  const windowMs = o.windowMs ?? 60_000;
+  const safeReleaseAt =
+    o.safeReleaseAt ?? safeReleaseAtMs(validBeforeSeconds, 2_000, 5_000);
   return {
     principalId: o.principalId ?? "principal-1",
     mandateId: o.mandateId ?? "mandate-1",
     payTo: o.payTo ?? "0xmerchant",
-    windowMs: o.windowMs ?? 60_000,
+    windowMs,
     cap: o.cap ?? 1_000_000n,
-    safeReleaseAt:
-      o.safeReleaseAt ?? safeReleaseAtMs(validBeforeSeconds, 2_000, 5_000),
+    safeReleaseAt,
+    recoveryReleaseAt: o.recoveryReleaseAt ?? safeReleaseAt + windowMs,
     ...(o.aggregateCap !== undefined ? { aggregateCap: o.aggregateCap } : {}),
+    ...(o.authorization !== undefined
+      ? { authorization: o.authorization }
+      : {}),
     ...(o.perPayeeReservationLimit !== undefined
       ? { perPayeeReservationLimit: o.perPayeeReservationLimit }
       : {}),

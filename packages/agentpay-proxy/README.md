@@ -66,10 +66,24 @@ default `http://127.0.0.1:4020`) — it holds no keys. Claude then has one tool,
 | `AGG_CAP` | `200000` | aggregate cap across all mandates ($0.20) — salami-drain stop |
 | `WINDOW_MS` | `300000` | rolling budget window |
 | `CEILING_S` | `300` | max authorization lifetime the proxy signs; effective ceiling `min(CEILING_S, WINDOW_MS/1000)` |
+| `STORE` | `sqlite` | `sqlite` for restart-safe state; `memory` only for disposable demos/tests |
+| `STATE_DB` | `./.agentpay-proxy-state.sqlite` | SQLite state file, mode `0600` |
 | `MANDATE=1` + `PIN_PAYTO`, `PIN_MAX` | off | mandate-required profile: bind every payment to this payee/max ($0.01 default max) |
 | `ALLOWED_HOSTS` | any | comma-separated allowlist of hosts `paid_fetch` may call. When set, the proxy also **refuses HTTP redirects** so an allowed host cannot redirect it to a disallowed one |
 
 Malformed money knobs throw at startup — no silent fallback.
+
+SQLite opens, migrates, and recovers before listener starts. Recovered
+`reserved` / `signed` / `submitted` rows become `unknown` and keep full cap
+through authorization recovery deadline. A longer `WINDOW_MS` extends that
+deadline before expiry; shortening never forgets old spend early. Corrupt,
+unreadable, locked, or newer schema state stops startup; proxy never falls back
+to memory. V1 supports one active proxy process per database.
+
+`GET /healthz` returns `503` when store/lifecycle readiness latches unhealthy.
+After possible transmission, failed lifecycle mutation blocks new paid requests
+until restart/recovery. On `SIGINT` / `SIGTERM`, listener closes before database
+checkpoint/close.
 
 ## Idempotency / retries
 
@@ -91,11 +105,11 @@ const { app, guard, account } = createPaymentProxy(process.env.PAYER_PK as `0x${
 app.listen(4020, "127.0.0.1");
 ```
 
-`ProxyHooks` (third argument) lets you supply an `onAudit` sink, a real
+`ProxyHooks` (third argument) lets embedded use supply an `onAudit` sink, a real
 `mandateVerifier` (verify a *signed* mandate's provenance — constraints must
-come from outside the model), and a shared `AtomicStore` for multi-worker
-deployments (a per-worker in-memory store multiplies your budget by the
-worker count).
+come from outside the model), and an explicit `AtomicStore`. Embedded
+`createPaymentProxy()` keeps memory default and performs no hidden filesystem
+writes. Inject a persistent adapter deliberately.
 
 ## Scope honesty
 
@@ -117,5 +131,6 @@ threat model:
 ## Related
 
 - [`@themobiusstrip/agentpay-guard`](https://www.npmjs.com/package/@themobiusstrip/agentpay-guard) — the policy plugin this proxy deploys
+- `@themobiusstrip/agentpay-guard/sqlite` — restart-safe one-host store entry used by CLI
 - [`@themobiusstrip/x402-idempotency-middleware`](https://www.npmjs.com/package/@themobiusstrip/x402-idempotency-middleware) — replay defense for the merchant side
 - `examples/paid-site.ts` in the repo — an x402-gated merchant to test against locally

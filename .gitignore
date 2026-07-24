@@ -8,6 +8,9 @@ coverage/
 .DS_Store
 spike/e2e/.wallet.json
 .agentpay-proxy-wallet.json
+.agentpay-proxy-state.sqlite
+.agentpay-proxy-state.sqlite-wal
+.agentpay-proxy-state.sqlite-shm
 
 # IDE
 *.code-workspace

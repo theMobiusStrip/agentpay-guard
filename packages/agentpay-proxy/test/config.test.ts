@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { configFromEnv, DEFAULTS } from "../src/config.js";
+import {
+  configFromEnv,
+  DEFAULTS,
+  DEFAULT_STATE_DB,
+  storeConfigFromEnv,
+} from "../src/config.js";
 
 describe("configFromEnv", () => {
   it("returns defaults for an empty environment", () => {
@@ -49,5 +54,42 @@ describe("configFromEnv", () => {
   it("parses ALLOWED_HOSTS as a trimmed lowercase list", () => {
     const cfg = configFromEnv({ ALLOWED_HOSTS: "x402.org, LocalHost:4021 ," });
     expect(cfg.allowedHosts).toEqual(["x402.org", "localhost:4021"]);
+  });
+});
+
+describe("storeConfigFromEnv", () => {
+  it("defaults CLI state to SQLite", () => {
+    expect(storeConfigFromEnv({})).toEqual({
+      kind: "sqlite",
+      stateDb: DEFAULT_STATE_DB,
+    });
+  });
+
+  it("supports explicit disposable memory mode", () => {
+    expect(storeConfigFromEnv({ STORE: "memory" })).toEqual({
+      kind: "memory",
+      stateDb: DEFAULT_STATE_DB,
+    });
+  });
+
+  it("accepts an explicit state path", () => {
+    expect(
+      storeConfigFromEnv({
+        STORE: "sqlite",
+        STATE_DB: "state/custom.sqlite",
+      }),
+    ).toEqual({
+      kind: "sqlite",
+      stateDb: "state/custom.sqlite",
+    });
+  });
+
+  it("rejects unknown store modes and empty paths", () => {
+    expect(() => storeConfigFromEnv({ STORE: "redis" })).toThrow(
+      /STORE/,
+    );
+    expect(() => storeConfigFromEnv({ STATE_DB: " " })).toThrow(
+      /STATE_DB/,
+    );
   });
 });

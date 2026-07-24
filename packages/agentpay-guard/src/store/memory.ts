@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import {
   PENDING_STATUSES,
   type ReservationStatus,
@@ -6,8 +7,10 @@ import { Mutex } from "./mutex.js";
 import type {
   AtomicStore,
   Reservation,
+  RecoveryResult,
   ReserveRequest,
   ReserveResult,
+  TransitionOptions,
 } from "./types.js";
 
 /**
@@ -31,21 +34,54 @@ export class InMemoryAtomicStore implements AtomicStore {
   private readonly mutex = new Mutex();
   private readonly reservations = new Map<string, Reservation>();
   private readonly dedup = new Map<string, number>(); // dedupKey -> expiresAt (ms)
-  private seq = 0;
 
   /** Pure: expire provably-dead reservations. Caller holds the mutex. */
-  private releaseExpiredLocked(now: number): number {
+  private releaseExpiredLocked(
+    now: number,
+    principalId?: string,
+  ): number {
     let n = 0;
     for (const r of this.reservations.values()) {
-      if (
-        PENDING_STATUSES.includes(r.status) &&
-        now >= r.safeReleaseAt
-      ) {
+      if (principalId !== undefined && r.principalId !== principalId) continue;
+      const deadline =
+        r.status === "reserved"
+          ? r.safeReleaseAt
+          : r.status === "signed" ||
+              r.status === "submitted" ||
+              r.status === "unknown"
+            ? r.recoveryReleaseAt
+            : undefined;
+      if (deadline !== undefined && now >= deadline) {
         r.status = "expired";
         n++;
       }
     }
     return n;
+  }
+
+  /**
+   * Grow uncertain-state recovery deadlines before checking expiry. Scope may
+   * narrow a request-path expansion to one principal; restart/reconcile applies
+   * the active window to every row in the store.
+   */
+  private extendRecoveryLocked(
+    requestedWindowMs: number,
+    principalId?: string,
+  ): void {
+    for (const r of this.reservations.values()) {
+      if (principalId !== undefined && r.principalId !== principalId) continue;
+      if (
+        r.status !== "signed" &&
+        r.status !== "submitted" &&
+        r.status !== "unknown"
+      ) {
+        continue;
+      }
+      r.recoveryReleaseAt = Math.max(
+        r.recoveryReleaseAt,
+        r.safeReleaseAt + Math.max(r.windowMs, requestedWindowMs),
+      );
+    }
   }
 
   /**
@@ -59,7 +95,6 @@ export class InMemoryAtomicStore implements AtomicStore {
     windowMs: number,
   ): bigint {
     let total = 0n;
-    const windowStart = now - windowMs;
     for (const r of this.reservations.values()) {
       if (r.principalId !== principalId) continue;
       if (mandateId !== null && r.mandateId !== mandateId) continue;
@@ -70,7 +105,7 @@ export class InMemoryAtomicStore implements AtomicStore {
       } else if (
         r.status === "settled" &&
         r.settledAt !== undefined &&
-        r.settledAt > windowStart
+        r.settledAt > now - Math.max(r.windowMs, windowMs)
         // No `settledAt <= now` upper bound: counting a settle that appears
         // future-dated (e.g. after a backward clock correction within the skew
         // bound) is strictly conservative and never undercounts the cap.
@@ -95,9 +130,43 @@ export class InMemoryAtomicStore implements AtomicStore {
     return n;
   }
 
+  private authorizationExistsLocked(
+    authorization: NonNullable<Reservation["authorization"]>,
+    exceptId?: string,
+  ): boolean {
+    const asset = authorization.asset.toLowerCase();
+    const from = authorization.from.toLowerCase();
+    const nonce = authorization.nonce.toLowerCase();
+    for (const reservation of this.reservations.values()) {
+      if (reservation.id === exceptId) continue;
+      const existing = reservation.authorization;
+      if (
+        existing !== undefined &&
+        existing.asset.toLowerCase() === asset &&
+        existing.from.toLowerCase() === from &&
+        existing.nonce.toLowerCase() === nonce
+      ) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   async tryReserve(req: ReserveRequest): Promise<ReserveResult> {
+    if (req.recoveryReleaseAt < req.safeReleaseAt + req.windowMs) {
+      throw new Error(
+        "recoveryReleaseAt must cover safeReleaseAt plus windowMs",
+      );
+    }
     return this.mutex.runExclusive(() => {
-      this.releaseExpiredLocked(req.now);
+      this.extendRecoveryLocked(req.windowMs, req.principalId);
+      this.releaseExpiredLocked(req.now, req.principalId);
+      if (
+        req.authorization !== undefined &&
+        this.authorizationExistsLocked(req.authorization)
+      ) {
+        throw new Error("duplicate signed authorization reference");
+      }
 
       if (req.perPayeeReservationLimit !== undefined) {
         const pendingForPayee = this.countPendingForPayeeLocked(
@@ -152,7 +221,7 @@ export class InMemoryAtomicStore implements AtomicStore {
         }
       }
 
-      const id = `r${++this.seq}`;
+      const id = randomUUID();
       this.reservations.set(id, {
         id,
         principalId: req.principalId,
@@ -162,6 +231,11 @@ export class InMemoryAtomicStore implements AtomicStore {
         payTo: req.payTo,
         reservedAt: req.now,
         safeReleaseAt: req.safeReleaseAt,
+        recoveryReleaseAt: req.recoveryReleaseAt,
+        windowMs: req.windowMs,
+        ...(req.authorization !== undefined
+          ? { authorization: { ...req.authorization } }
+          : {}),
       });
       return {
         ok: true as const,
@@ -175,16 +249,30 @@ export class InMemoryAtomicStore implements AtomicStore {
     reservationId: string,
     from: ReservationStatus,
     to: ReservationStatus,
-    opts?: { settledAt?: number; safeReleaseAt?: number },
+    opts?: TransitionOptions,
   ): Promise<boolean> {
     if (to === "settled" && opts?.settledAt === undefined) {
       // Contract violation: settlement MUST be attributed at settlement time.
       // Backdating to reservedAt reopens the window-slide undercount.
       throw new Error("transition to 'settled' requires opts.settledAt");
     }
+    if (opts?.authorization !== undefined && to !== "signed") {
+      throw new Error(
+        "authorization reference requires transition to 'signed'",
+      );
+    }
     return this.mutex.runExclusive(() => {
       const r = this.reservations.get(reservationId);
       if (!r || r.status !== from) return false;
+      if (
+        opts?.authorization !== undefined &&
+        this.authorizationExistsLocked(
+          opts.authorization,
+          reservationId,
+        )
+      ) {
+        throw new Error("duplicate signed authorization reference");
+      }
       r.status = to;
       if (to === "settled" && opts?.settledAt !== undefined) {
         r.settledAt = opts.settledAt;
@@ -193,6 +281,13 @@ export class InMemoryAtomicStore implements AtomicStore {
       // originally-priced horizon); never shrink it.
       if (opts?.safeReleaseAt !== undefined && opts.safeReleaseAt > r.safeReleaseAt) {
         r.safeReleaseAt = opts.safeReleaseAt;
+        r.recoveryReleaseAt = Math.max(
+          r.recoveryReleaseAt,
+          opts.safeReleaseAt + r.windowMs,
+        );
+      }
+      if (opts?.authorization !== undefined) {
+        r.authorization = { ...opts.authorization };
       }
       return true;
     });
@@ -217,13 +312,54 @@ export class InMemoryAtomicStore implements AtomicStore {
     });
   }
 
-  async releaseExpired(now: number): Promise<number> {
-    return this.mutex.runExclusive(() => this.releaseExpiredLocked(now));
+  async releaseExpired(
+    now: number,
+    requestedWindowMs: number,
+  ): Promise<number> {
+    return this.mutex.runExclusive(() => {
+      this.extendRecoveryLocked(requestedWindowMs);
+      return this.releaseExpiredLocked(now);
+    });
+  }
+
+  async recoverAfterRestart(
+    now: number,
+    requestedWindowMs: number,
+  ): Promise<RecoveryResult> {
+    return this.mutex.runExclusive(() => {
+      let markedUnknown = 0;
+      for (const r of this.reservations.values()) {
+        if (
+          r.status === "reserved" ||
+          r.status === "signed" ||
+          r.status === "submitted"
+        ) {
+          r.status = "unknown";
+          markedUnknown++;
+        }
+      }
+      this.extendRecoveryLocked(requestedWindowMs);
+      let expired = 0;
+      for (const r of this.reservations.values()) {
+        if (r.status === "unknown" && now >= r.recoveryReleaseAt) {
+          r.status = "expired";
+          expired++;
+        }
+      }
+      return { markedUnknown, expired };
+    });
   }
 
   async get(reservationId: string): Promise<Reservation | undefined> {
     const r = this.reservations.get(reservationId);
-    return r ? { ...r } : undefined;
+    return r
+      ? {
+          ...r,
+          ...(r.authorization !== undefined
+            ? { authorization: { ...r.authorization } }
+            : {}),
+        }
+      : undefined;
   }
 
   async committedAmount(

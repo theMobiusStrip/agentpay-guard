@@ -38,6 +38,15 @@ export interface ProxyConfig {
   allowedHosts?: readonly string[];
 }
 
+export type StoreKind = "sqlite" | "memory";
+
+export interface ProxyStoreConfig {
+  kind: StoreKind;
+  stateDb: string;
+}
+
+export const DEFAULT_STATE_DB = ".agentpay-proxy-state.sqlite";
+
 export const DEFAULTS: Readonly<Omit<ProxyConfig, "mandate" | "allowedHosts">> = {
   host: "127.0.0.1",
   port: 4020,
@@ -77,6 +86,23 @@ export function configFromEnv(env: NodeJS.ProcessEnv = process.env): ProxyConfig
     .filter((h) => h !== "");
   if (hosts && hosts.length > 0) cfg.allowedHosts = hosts;
   return cfg;
+}
+
+/** Parse CLI-only persistent-store settings. Embedded use injects a store. */
+export function storeConfigFromEnv(
+  env: NodeJS.ProcessEnv = process.env,
+): ProxyStoreConfig {
+  const rawKind = env.STORE ?? "sqlite";
+  if (rawKind !== "sqlite" && rawKind !== "memory") {
+    throw new Error(
+      `STORE must be "sqlite" or "memory", got "${rawKind}"`,
+    );
+  }
+  const stateDb = env.STATE_DB ?? DEFAULT_STATE_DB;
+  if (stateDb.trim() === "") {
+    throw new Error("STATE_DB must not be empty");
+  }
+  return { kind: rawKind, stateDb };
 }
 
 function intFromEnv(env: NodeJS.ProcessEnv, key: string, fallback: number): number {

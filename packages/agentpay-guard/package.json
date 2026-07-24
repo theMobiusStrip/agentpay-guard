@@ -1,7 +1,7 @@
 {
   "name": "@themobiusstrip/agentpay-guard",
-  "version": "0.0.3",
-  "description": "Stateful x402 policy plugin: atomic reserve-before-sign budget cap, trusted intent constraint check, duplicate-authorization guard. Fail-closed outside the MVP envelope.",
+  "version": "0.0.4",
+  "description": "Stateful x402 policy plugin with restart-safe SQLite accounting. Atomic reserve-before-sign budget cap, trusted intent constraint check, and duplicate-authorization guard.",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -9,6 +9,10 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
+    },
+    "./sqlite": {
+      "types": "./dist/store/sqlite/index.d.ts",
+      "import": "./dist/store/sqlite/index.js"
     }
   },
   "files": ["dist", "README.md", "LICENSE"],
@@ -18,6 +22,7 @@
     "eip-712",
     "payments",
     "agent",
+    "sqlite",
     "budget",
     "spend-limit",
     "policy",
@@ -36,7 +41,7 @@
   "author": "agentpay-guard contributors",
   "license": "MIT",
   "engines": {
-    "node": ">=22"
+    "node": ">=22.13.0"
   },
   "publishConfig": {
     "access": "public"

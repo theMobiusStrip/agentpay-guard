@@ -8,7 +8,19 @@
 export { createPaymentProxy } from "./proxy.js";
 export type { PaymentProxy, ProxyHooks } from "./proxy.js";
 
-export { configFromEnv, DEFAULTS, BASE_SEPOLIA, BASE_SEPOLIA_USDC } from "./config.js";
-export type { ProxyConfig, PinnedMandate } from "./config.js";
+export {
+  configFromEnv,
+  storeConfigFromEnv,
+  DEFAULTS,
+  DEFAULT_STATE_DB,
+  BASE_SEPOLIA,
+  BASE_SEPOLIA_USDC,
+} from "./config.js";
+export type {
+  ProxyConfig,
+  ProxyStoreConfig,
+  PinnedMandate,
+  StoreKind,
+} from "./config.js";
 
 export { runMcpForwarder } from "./mcp.js";

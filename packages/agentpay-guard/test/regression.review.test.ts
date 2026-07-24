@@ -36,7 +36,18 @@ function beforeCtx(): PaymentCreationContextLike {
 function afterCtx(nonce: string, validBefore: string, to = "0xmerchant", value = "100000"): PaymentCreatedContextLike {
   return {
     ...beforeCtx(),
-    paymentPayload: { x402Version: 2, payload: { authorization: { to, value, validBefore, nonce } } },
+    paymentPayload: {
+      x402Version: 2,
+      payload: {
+        authorization: {
+          from: "0xpayer",
+          to,
+          value,
+          validBefore,
+          nonce,
+        },
+      },
+    },
   };
 }
 function responseCtx(nonce: string, success: boolean): PaymentResponseContextLike {
@@ -121,7 +132,7 @@ describe("Finding 2: safeReleaseAt covers the actually-signed validBefore", () =
   });
 
   it("extends safeReleaseAt to the signed validBefore so reconcile cannot release early", async () => {
-    const { client, store, clock } = install(1_000_000_000);
+    const { client, store, clock, events } = install(1_000_000_000);
     const reservedAtS = Math.floor(1_000_000_000 / 1000);
     // Signing latency: signed validBefore is 1s later than the hook-time horizon.
     const signedVb = reservedAtS + 20 + 1; // within the +1 tolerance, but beyond priced safeReleaseAt
@@ -129,11 +140,20 @@ describe("Finding 2: safeReleaseAt covers the actually-signed validBefore", () =
     await client.after(afterCtx("0xaaa", String(signedVb)));
     // Reservation's safeReleaseAt must now cover signedVb (+margin+skew).
     // Find the reservation via committed (it is signed/pending) then inspect.
-    const res = await store.get("r1");
+    const reservationId = events.find(
+      (event) => event.kind === "signed",
+    )?.reservationId;
+    if (reservationId === undefined) {
+      throw new Error("signed reservation missing");
+    }
+    const res = await store.get(reservationId);
     expect(res?.safeReleaseAt).toBe(signedVb * 1000 + 2_000 + 5_000);
+    expect(res?.recoveryReleaseAt).toBe(
+      signedVb * 1000 + 2_000 + 5_000 + 60_000,
+    );
     // reconcile just before that time must NOT release it.
     clock.set(signedVb * 1000 + 2_000 + 5_000 - 1);
-    const released = await store.releaseExpired(clock.now());
+    const released = await store.releaseExpired(clock.now(), 60_000);
     expect(released).toBe(0);
   });
 });
@@ -144,6 +164,7 @@ describe("Finding 3: settled transition requires settledAt (no backdating)", () 
     const r = await store.tryReserve({
       principalId: "p", mandateId: "m", amount: 1n, payTo: "0x", now: 0,
       windowMs: 1000, cap: 10n, safeReleaseAt: 1_000_000,
+      recoveryReleaseAt: 1_001_000,
     });
     if (!r.ok) throw new Error("reserve failed");
     await store.transition(r.reservationId, "reserved", "signed");
@@ -157,6 +178,7 @@ describe("Finding 4: future-dated settle still counts after a backward clock cor
     const r = await store.tryReserve({
       principalId: "p", mandateId: "m", amount: 100n, payTo: "0x", now: 0,
       windowMs: 60_000, cap: 1000n, safeReleaseAt: 10_000_000,
+      recoveryReleaseAt: 10_060_000,
     });
     if (!r.ok) throw new Error("reserve failed");
     await store.transition(r.reservationId, "reserved", "signed");
