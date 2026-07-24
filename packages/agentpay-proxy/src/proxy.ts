@@ -203,13 +203,18 @@ export function createPaymentProxy(
       const r = await dedupAls.run({ intentId }, () => fetchWithPay(target.url));
       const settlement = r.headers.get("PAYMENT-RESPONSE"); // settlement receipt (tx hash inside)
       const responseBody = await r.text();
-      await guard.reconcile();
       res.status(200).json({
         status: r.status,
         intentId,
         body: responseBody,
         ...(settlement ? { settlement } : {}),
       });
+      try {
+        await guard.reconcile();
+      } catch {
+        // Paid response is already delivered. Reconcile latched readiness, so
+        // later paid requests fail closed until restart and recovery.
+      }
     } catch (e) {
       if (guard.isHealthy()) {
         try {

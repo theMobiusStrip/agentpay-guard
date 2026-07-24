@@ -68,6 +68,7 @@ default `http://127.0.0.1:4020`) — it holds no keys. Claude then has one tool,
 | `CEILING_S` | `300` | max authorization lifetime the proxy signs; effective ceiling `min(CEILING_S, WINDOW_MS/1000)` |
 | `STORE` | `sqlite` | `sqlite` for restart-safe state; `memory` only for disposable demos/tests |
 | `STATE_DB` | `./.agentpay-proxy-state.sqlite` | SQLite state file, mode `0600` |
+| `MAX_ACCOUNTING_WINDOW_MS` | current `WINDOW_MS` | durable upper bound for future rolling windows; must be at least `WINDOW_MS` |
 | `MANDATE=1` + `PIN_PAYTO`, `PIN_MAX` | off | mandate-required profile: bind every payment to this payee/max ($0.01 default max) |
 | `ALLOWED_HOSTS` | any | comma-separated allowlist of hosts `paid_fetch` may call. When set, the proxy also **refuses HTTP redirects** so an allowed host cannot redirect it to a disallowed one |
 
@@ -76,14 +77,20 @@ Malformed money knobs throw at startup — no silent fallback.
 SQLite opens, migrates, and recovers before listener starts. Recovered
 `reserved` / `signed` / `submitted` rows become `unknown` and keep full cap
 through authorization recovery deadline. A longer `WINDOW_MS` extends that
-deadline before expiry; shortening never forgets old spend early. Corrupt,
-unreadable, locked, or newer schema state stops startup; proxy never falls back
-to memory. V1 supports one active proxy process per database.
+deadline before expiry; shortening never forgets old spend early. Set
+`MAX_ACCOUNTING_WINDOW_MS` before first run if later window expansion is planned.
+The persisted value becomes immutable; later window contraction reuses it,
+while requests above it fail closed. Expired dedup rows, aged terminal rows,
+and settled rows beyond every permitted window are pruned. Corrupt, unreadable,
+locked, or newer schema state stops startup; proxy never falls back to memory.
+SQLite supports one active proxy process per database.
 
 `GET /healthz` returns `503` when store/lifecycle readiness latches unhealthy.
 After possible transmission, failed lifecycle mutation blocks new paid requests
-until restart/recovery. On `SIGINT` / `SIGTERM`, listener closes before database
-checkpoint/close.
+until restart/recovery. If merchant response already arrived, proxy returns that
+paid response before reconciliation; reconciliation failure then blocks later
+paid requests instead of replacing paid content with `503`. On `SIGINT` /
+`SIGTERM`, listener closes before database checkpoint/close.
 
 ## Idempotency / retries
 

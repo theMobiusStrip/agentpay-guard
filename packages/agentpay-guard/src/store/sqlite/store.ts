@@ -23,11 +23,17 @@ import { migrateSchema } from "./schema.js";
 const DEFAULT_BUSY_TIMEOUT_MS = 250;
 const DEFAULT_BUSY_RETRIES = 2;
 const DEFAULT_RETRY_JITTER_MS = 25;
+const TERMINAL_RETENTION_MS = 24 * 60 * 60 * 1_000;
 
 export interface SqliteStoreOptions {
   busyTimeoutMs?: number;
   busyRetries?: number;
   retryJitterMs?: number;
+  /**
+   * Durable ceiling for requested accounting windows. Enables safe settled-row
+   * pruning. First configured value becomes immutable for this database.
+   */
+  maxAccountingWindowMs?: number;
   /** Migration metadata clock. Never used for spend decisions. */
   metadataNow?: () => number;
 }
@@ -36,6 +42,7 @@ interface ResolvedOptions {
   busyTimeoutMs: number;
   busyRetries: number;
   retryJitterMs: number;
+  maxAccountingWindowMs?: number;
   metadataNow: () => number;
 }
 
@@ -54,6 +61,12 @@ function optionInteger(
 }
 
 function resolveOptions(options: SqliteStoreOptions): ResolvedOptions {
+  if (options.maxAccountingWindowMs !== undefined) {
+    positiveInteger(
+      options.maxAccountingWindowMs,
+      "maxAccountingWindowMs",
+    );
+  }
   return {
     busyTimeoutMs: optionInteger(
       options.busyTimeoutMs,
@@ -70,6 +83,9 @@ function resolveOptions(options: SqliteStoreOptions): ResolvedOptions {
       DEFAULT_RETRY_JITTER_MS,
       "retryJitterMs",
     ),
+    ...(options.maxAccountingWindowMs !== undefined
+      ? { maxAccountingWindowMs: options.maxAccountingWindowMs }
+      : {}),
     metadataNow: options.metadataNow ?? Date.now,
   };
 }
@@ -316,6 +332,7 @@ export class SqliteAtomicStore implements AtomicStore {
       }
       await store.transaction("EXCLUSIVE", () => {
         migrateSchema(db, resolvedOptions.metadataNow());
+        store.configureAccountingWindow();
       });
       const check = db.prepare("PRAGMA quick_check").get() as
         | SqliteRow
@@ -341,6 +358,62 @@ export class SqliteAtomicStore implements AtomicStore {
   private assertUsable(): void {
     if (this.closed) throw new Error("SQLite store is closed");
     if (this.poisoned !== undefined) throw this.poisoned;
+  }
+
+  private configureAccountingWindow(): void {
+    const stored = this.readAccountingWindow();
+    const requested = this.options.maxAccountingWindowMs;
+    if (stored === undefined && requested !== undefined) {
+      this.db
+        .prepare(
+          `UPDATE schema_meta
+           SET max_accounting_window_ms = ?
+           WHERE singleton = 1
+             AND max_accounting_window_ms IS NULL`,
+        )
+        .run(requested);
+    }
+  }
+
+  private readAccountingWindow(): number | undefined {
+    const row = this.db
+      .prepare(
+        `SELECT max_accounting_window_ms
+         FROM schema_meta
+         WHERE singleton = 1`,
+      )
+      .get() as SqliteRow | undefined;
+    if (row === undefined) {
+      throw new Error("invalid SQLite schema metadata");
+    }
+    const storedValue = row["max_accounting_window_ms"];
+    if (
+      storedValue !== null &&
+      storedValue !== undefined &&
+      (typeof storedValue !== "number" ||
+        !Number.isSafeInteger(storedValue) ||
+        storedValue <= 0)
+    ) {
+      throw new Error("invalid SQLite max accounting window");
+    }
+    const stored =
+      typeof storedValue === "number" ? storedValue : undefined;
+    const requested = this.options.maxAccountingWindowMs;
+    if (stored !== undefined && requested !== undefined && requested > stored) {
+      throw new Error(
+        `SQLite max accounting window is ${stored}; requested window ceiling ${requested}`,
+      );
+    }
+    return stored;
+  }
+
+  private assertWindowAllowed(windowMs: number): void {
+    const maximum = this.readAccountingWindow();
+    if (maximum !== undefined && windowMs > maximum) {
+      throw new Error(
+        `requested window ${windowMs} exceeds SQLite max accounting window ${maximum}`,
+      );
+    }
   }
 
   private async transaction<T>(
@@ -416,6 +489,33 @@ export class SqliteAtomicStore implements AtomicStore {
         : uncertainStatement.run(now, now, principalId),
     );
     return reserved + uncertain;
+  }
+
+  private pruneExpiredData(now: number): void {
+    this.db
+      .prepare("DELETE FROM dedup WHERE expires_at_ms <= ?")
+      .run(now);
+    const terminalCutoff = now - TERMINAL_RETENTION_MS;
+    safeInteger(terminalCutoff, "terminal retention cutoff");
+    this.db
+      .prepare(
+        `DELETE FROM reservations
+         WHERE status IN ('expired', 'released')
+           AND updated_at_ms <= ?`,
+      )
+      .run(terminalCutoff);
+    const maximum = this.readAccountingWindow();
+    if (maximum !== undefined) {
+      this.db
+        .prepare(
+          `DELETE FROM reservations
+           WHERE status = 'settled'
+             AND settled_at_ms IS NOT NULL
+             AND settled_at_ms
+               <= ? - MAX(window_ms, ?)`,
+        )
+        .run(now, maximum);
+    }
   }
 
   /**
@@ -530,8 +630,10 @@ export class SqliteAtomicStore implements AtomicStore {
     validateAuthorization(req.authorization);
 
     return this.transaction("IMMEDIATE", () => {
+      this.assertWindowAllowed(req.windowMs);
       this.extendUncertainRecovery(req.now, req.windowMs, req.principalId);
       this.expireEligible(req.now, req.principalId);
+      this.pruneExpiredData(req.now);
 
       if (req.perPayeeReservationLimit !== undefined) {
         positiveInteger(
@@ -750,12 +852,7 @@ export class SqliteAtomicStore implements AtomicStore {
     const digest = createHash("sha256").update(dedupKey).digest();
 
     return this.transaction("IMMEDIATE", () => {
-      this.db
-        .prepare(
-          `DELETE FROM dedup
-           WHERE key_digest = ? AND expires_at_ms <= ?`,
-        )
-        .run(digest, now);
+      this.pruneExpiredData(now);
       return (
         changes(
           this.db
@@ -787,8 +884,11 @@ export class SqliteAtomicStore implements AtomicStore {
     safeInteger(now, "now");
     positiveInteger(requestedWindowMs, "requestedWindowMs");
     return this.transaction("IMMEDIATE", () => {
+      this.assertWindowAllowed(requestedWindowMs);
       this.extendUncertainRecovery(now, requestedWindowMs);
-      return this.expireEligible(now);
+      const expired = this.expireEligible(now);
+      this.pruneExpiredData(now);
+      return expired;
     });
   }
 
@@ -799,6 +899,7 @@ export class SqliteAtomicStore implements AtomicStore {
     safeInteger(now, "now");
     positiveInteger(requestedWindowMs, "requestedWindowMs");
     return this.transaction("IMMEDIATE", () => {
+      this.assertWindowAllowed(requestedWindowMs);
       const markedUnknown = changes(
         this.db
           .prepare(
@@ -821,6 +922,7 @@ export class SqliteAtomicStore implements AtomicStore {
           )
           .run(now, now),
       );
+      this.pruneExpiredData(now);
       return { markedUnknown, expired };
     });
   }
@@ -861,15 +963,17 @@ export class SqliteAtomicStore implements AtomicStore {
     now: number,
     windowMs: number,
   ): Promise<bigint> {
-    this.assertUsable();
     safeInteger(now, "now");
     positiveInteger(windowMs, "windowMs");
-    return this.committed(
-      principalId,
-      mandateId,
-      now,
-      windowMs,
-    );
+    return this.transaction("IMMEDIATE", () => {
+      this.assertWindowAllowed(windowMs);
+      return this.committed(
+        principalId,
+        mandateId,
+        now,
+        windowMs,
+      );
+    });
   }
 
   async close(): Promise<void> {

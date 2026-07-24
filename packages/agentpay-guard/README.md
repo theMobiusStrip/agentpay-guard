@@ -51,7 +51,9 @@ Node's built-in `node:sqlite` API remains experimental. Requires Node
 ```ts
 import { openSqliteStore } from "@themobiusstrip/agentpay-guard/sqlite";
 
-const store = await openSqliteStore(".agentpay-proxy-state.sqlite");
+const store = await openSqliteStore(".agentpay-proxy-state.sqlite", {
+  maxAccountingWindowMs: 300_000,
+});
 const recovered = await store.recoverAfterRestart(Date.now(), 300_000);
 // Pass store to installAgentPayGuard() or createPaymentProxy().
 ```
@@ -64,6 +66,12 @@ Reservations, rolling-window attribution, and payer-owned dedup keys persist.
 Signed rows retain only `{ network, asset, from, nonce, validBefore }`; private
 keys, signatures, and raw payment payloads never enter database.
 
-V1 supports one active proxy process per database. Independent SQLite
+Expired dedup rows are removed globally. Terminal reservations retain a 24-hour
+audit tail. `maxAccountingWindowMs` enables safe settled-row pruning and becomes
+immutable for that database; later lower ceilings reuse it, while requested
+windows above it fail closed. Omit the option to keep settled history instead
+of risking future-window undercount.
+
+SQLite supports one active proxy process per database. Independent SQLite
 connections serialize accounting, but process-local x402 lifecycle correlation
 still requires one proxy owner. Call `close()` after stopping traffic.

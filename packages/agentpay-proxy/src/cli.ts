@@ -8,8 +8,8 @@
  * serve env: PAYER_PK (else WALLET_FILE, default ./.agentpay-proxy-wallet.json,
  * auto-generated on first run — TESTNET ONLY, never a real key), HOST, PORT,
  * WINDOW_MS, CAP, AGG_CAP, CEILING_S, MANDATE=1 + PIN_PAYTO/PIN_MAX,
- * ALLOWED_HOSTS, STORE=sqlite|memory, STATE_DB. mcp env: PROXY_URL (default
- * http://127.0.0.1:4020).
+ * ALLOWED_HOSTS, STORE=sqlite|memory, STATE_DB, MAX_ACCOUNTING_WINDOW_MS. mcp
+ * env: PROXY_URL (default http://127.0.0.1:4020).
  */
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import type { Server } from "node:http";
@@ -93,7 +93,7 @@ async function serve(): Promise<void> {
   let storeConfig;
   try {
     config = configFromEnv();
-    storeConfig = storeConfigFromEnv();
+    storeConfig = storeConfigFromEnv(process.env, config.windowMs);
   } catch (e) {
     // Fail closed: a malformed money/config knob must stop the proxy starting,
     // not fall back to a default that silently widens the spend envelope.
@@ -107,7 +107,9 @@ async function serve(): Promise<void> {
   let recovery: RecoveryResult;
   try {
     if (storeConfig.kind === "sqlite") {
-      sqliteStore = await openSqliteStore(storeConfig.stateDb);
+      sqliteStore = await openSqliteStore(storeConfig.stateDb, {
+        maxAccountingWindowMs: storeConfig.maxAccountingWindowMs,
+      });
       store = sqliteStore;
     } else {
       store = new InMemoryAtomicStore();

@@ -58,7 +58,9 @@ Each answers a *different* question; they are complementary, not redundant.
   listening after restart, recovery atomically changes `reserved` / `signed` /
   `submitted` rows to `unknown`; those rows hold cap through `safeReleaseAt +
   original windowMs`. Lost responses cannot reopen budget while a last-instant
-  settlement remains inside its rolling window.
+  settlement remains inside its rolling window. SQLite prunes settled history
+  only after the persisted maximum accounting window; a larger requested window
+  fails closed.
 - **Server-side replay defense** keyed on the payer-signed EIP-3009 authorization.
 
 ## Honest limitations (do not overclaim)
@@ -69,7 +71,7 @@ Each answers a *different* question; they are complementary, not redundant.
   a change that swallows an error without aborting reopens this.
 - **Store scope is explicit.** `InMemoryAtomicStore` is volatile,
   single-process state for tests and disposable embedded use. The proxy CLI
-  defaults to restart-safe SQLite. SQLite V1 supports one active proxy process
+  defaults to restart-safe SQLite. SQLite supports one active proxy process
   per database; independent connections serialize cap operations, but
   process-local lifecycle correlation still has one owner. PostgreSQL is
   required for multi-worker / multi-host lifecycle ownership. Every shipped
@@ -82,7 +84,9 @@ Each answers a *different* question; they are complementary, not redundant.
   Crash can over-block for one effective rolling window after authorization
   becomes un-settleable. It cannot undercount a possibly settled payment.
   Runtime store or lifecycle mutation failure latches proxy readiness false;
-  new paid requests stay blocked until restart/recovery.
+  new paid requests stay blocked until restart/recovery. A reconciliation
+  failure after merchant response does not replace already paid content; it
+  blocks later requests.
 - **Intent binding is only as strong as the mandate.** EIP-3009 signs
   `{from,to,value,validAfter,validBefore,nonce}` — **not** merchant / resource URL /
   method. `payTo`/`value` bind cleanly; URL binding rests on a separately-signed

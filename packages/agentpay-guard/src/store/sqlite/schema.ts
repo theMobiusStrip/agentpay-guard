@@ -1,6 +1,6 @@
 import type { DatabaseSync } from "node:sqlite";
 
-export const SCHEMA_VERSION = 1;
+export const SCHEMA_VERSION = 2;
 
 const RESERVATION_COLUMNS = [
   "id",
@@ -29,6 +29,8 @@ const RESERVATION_INDEXES = [
   "reservations_payee_status",
   "reservations_safe_release",
   "reservations_recovery_release",
+  "reservations_settled_at",
+  "reservations_terminal_updated",
   "reservations_authorization",
 ] as const;
 
@@ -37,7 +39,12 @@ const CREATE_SCHEMA = `
     singleton INTEGER PRIMARY KEY CHECK (singleton = 1),
     schema_version INTEGER NOT NULL,
     created_at_ms INTEGER NOT NULL,
-    migrated_at_ms INTEGER NOT NULL
+    migrated_at_ms INTEGER NOT NULL,
+    max_accounting_window_ms INTEGER
+      CHECK (
+        max_accounting_window_ms IS NULL
+        OR max_accounting_window_ms > 0
+      )
   ) STRICT;
 
   CREATE TABLE reservations (
@@ -103,6 +110,10 @@ const CREATE_SCHEMA = `
     ON reservations (status, safe_release_at_ms);
   CREATE INDEX reservations_recovery_release
     ON reservations (status, recovery_release_at_ms);
+  CREATE INDEX reservations_settled_at
+    ON reservations (status, settled_at_ms);
+  CREATE INDEX reservations_terminal_updated
+    ON reservations (status, updated_at_ms);
   CREATE UNIQUE INDEX reservations_authorization
     ON reservations (
       asset COLLATE NOCASE,
@@ -115,6 +126,7 @@ const CREATE_SCHEMA = `
     key_digest BLOB PRIMARY KEY,
     expires_at_ms INTEGER NOT NULL
   ) STRICT;
+  CREATE INDEX dedup_expires ON dedup (expires_at_ms);
 `;
 
 function tableNames(db: DatabaseSync): string[] {
@@ -161,29 +173,15 @@ function validateColumns(
   }
 }
 
-function validateCurrentSchema(db: DatabaseSync): void {
-  validateColumns(
-    db,
-    "schema_meta",
-    [
-      "singleton",
-      "schema_version",
-      "created_at_ms",
-      "migrated_at_ms",
-    ],
-    "singleton",
-  );
+function validateReservationSchema(
+  db: DatabaseSync,
+  expectedIndexes: readonly string[],
+): void {
   validateColumns(
     db,
     "reservations",
     RESERVATION_COLUMNS,
     "id",
-  );
-  validateColumns(
-    db,
-    "dedup",
-    ["key_digest", "expires_at_ms"],
-    "key_digest",
   );
 
   const indexes = db
@@ -198,7 +196,7 @@ function validateCurrentSchema(db: DatabaseSync): void {
       return name;
     }),
   );
-  for (const expected of RESERVATION_INDEXES) {
+  for (const expected of expectedIndexes) {
     if (!names.has(expected)) {
       throw new Error(
         `invalid SQLite schema: ${expected} index missing`,
@@ -248,8 +246,68 @@ function validateCurrentSchema(db: DatabaseSync): void {
   }
 }
 
+function validateVersion1Schema(db: DatabaseSync): void {
+  validateColumns(
+    db,
+    "schema_meta",
+    [
+      "singleton",
+      "schema_version",
+      "created_at_ms",
+      "migrated_at_ms",
+    ],
+    "singleton",
+  );
+  validateReservationSchema(
+    db,
+    RESERVATION_INDEXES.filter(
+      (name) =>
+        name !== "reservations_settled_at" &&
+        name !== "reservations_terminal_updated",
+    ),
+  );
+  validateColumns(
+    db,
+    "dedup",
+    ["key_digest", "expires_at_ms"],
+    "key_digest",
+  );
+}
+
+function validateCurrentSchema(db: DatabaseSync): void {
+  validateColumns(
+    db,
+    "schema_meta",
+    [
+      "singleton",
+      "schema_version",
+      "created_at_ms",
+      "migrated_at_ms",
+      "max_accounting_window_ms",
+    ],
+    "singleton",
+  );
+  validateReservationSchema(db, RESERVATION_INDEXES);
+  validateColumns(
+    db,
+    "dedup",
+    ["key_digest", "expires_at_ms"],
+    "key_digest",
+  );
+  const dedupIndexes = db
+    .prepare("PRAGMA index_list('dedup')")
+    .all();
+  if (
+    !dedupIndexes.some((row) => row["name"] === "dedup_expires")
+  ) {
+    throw new Error(
+      "invalid SQLite schema: dedup_expires index missing",
+    );
+  }
+}
+
 /**
- * Run inside BEGIN EXCLUSIVE. Version 1 is initial schema; unknown state fails.
+ * Run inside BEGIN EXCLUSIVE. Unknown state fails before migration.
  */
 export function migrateSchema(
   db: DatabaseSync,
@@ -260,11 +318,12 @@ export function migrateSchema(
     db.exec(CREATE_SCHEMA);
     db.prepare(
       `INSERT INTO schema_meta (
-         singleton,
-         schema_version,
-         created_at_ms,
-         migrated_at_ms
-       ) VALUES (1, ?, ?, ?)`,
+       singleton,
+       schema_version,
+       created_at_ms,
+         migrated_at_ms,
+         max_accounting_window_ms
+       ) VALUES (1, ?, ?, ?, NULL)`,
     ).run(SCHEMA_VERSION, metadataNow, metadataNow);
     validateCurrentSchema(db);
     return;
@@ -293,7 +352,7 @@ export function migrateSchema(
       `SQLite schema version ${version} is newer than supported ${SCHEMA_VERSION}`,
     );
   }
-  if (version < SCHEMA_VERSION) {
+  if (version < 1) {
     throw new Error(
       `SQLite schema version ${version} has no registered migration`,
     );
@@ -302,6 +361,27 @@ export function migrateSchema(
     if (!tables.includes(expected)) {
       throw new Error(`invalid SQLite schema: ${expected} missing`);
     }
+  }
+  if (version === 1) {
+    validateVersion1Schema(db);
+    db.exec(`
+      ALTER TABLE schema_meta
+        ADD COLUMN max_accounting_window_ms INTEGER
+          CHECK (
+            max_accounting_window_ms IS NULL
+            OR max_accounting_window_ms > 0
+          );
+      CREATE INDEX reservations_settled_at
+        ON reservations (status, settled_at_ms);
+      CREATE INDEX reservations_terminal_updated
+        ON reservations (status, updated_at_ms);
+      CREATE INDEX dedup_expires ON dedup (expires_at_ms);
+    `);
+    db.prepare(
+      `UPDATE schema_meta
+       SET schema_version = ?, migrated_at_ms = ?
+       WHERE singleton = 1`,
+    ).run(SCHEMA_VERSION, metadataNow);
   }
   validateCurrentSchema(db);
 }

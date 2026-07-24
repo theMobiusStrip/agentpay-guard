@@ -62,6 +62,7 @@ describe("storeConfigFromEnv", () => {
     expect(storeConfigFromEnv({})).toEqual({
       kind: "sqlite",
       stateDb: DEFAULT_STATE_DB,
+      maxAccountingWindowMs: DEFAULTS.windowMs,
     });
   });
 
@@ -69,6 +70,7 @@ describe("storeConfigFromEnv", () => {
     expect(storeConfigFromEnv({ STORE: "memory" })).toEqual({
       kind: "memory",
       stateDb: DEFAULT_STATE_DB,
+      maxAccountingWindowMs: DEFAULTS.windowMs,
     });
   });
 
@@ -81,7 +83,23 @@ describe("storeConfigFromEnv", () => {
     ).toEqual({
       kind: "sqlite",
       stateDb: "state/custom.sqlite",
+      maxAccountingWindowMs: DEFAULTS.windowMs,
     });
+  });
+
+  it("pins a maximum that covers the active window", () => {
+    expect(
+      storeConfigFromEnv(
+        { MAX_ACCOUNTING_WINDOW_MS: "120000" },
+        60_000,
+      ),
+    ).toMatchObject({ maxAccountingWindowMs: 120_000 });
+    expect(() =>
+      storeConfigFromEnv(
+        { MAX_ACCOUNTING_WINDOW_MS: "59999" },
+        60_000,
+      ),
+    ).toThrow(/at least WINDOW_MS/);
   });
 
   it("rejects unknown store modes and empty paths", () => {

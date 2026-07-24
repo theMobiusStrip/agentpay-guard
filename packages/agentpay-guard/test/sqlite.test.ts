@@ -297,6 +297,146 @@ describe("SQLite persistence and recovery", () => {
     await second.close();
   });
 
+  it("globally prunes expired dedup rows", async () => {
+    const { path } = tempDatabase();
+    const store = await openSqliteStore(path);
+    await store.putIfAbsent("expired-intent", 100, 0);
+    await store.putIfAbsent("live-intent", 1_000, 0);
+
+    await store.releaseExpired(100, 60_000);
+    await store.close();
+
+    const raw = new DatabaseSync(path);
+    const row = raw
+      .prepare("SELECT COUNT(*) AS count FROM dedup")
+      .get();
+    raw.close();
+    expect(row?.["count"]).toBe(1);
+  });
+
+  it("retains terminal audit state for 24 hours, then prunes it", async () => {
+    const { path } = tempDatabase();
+    const store = await openSqliteStore(path);
+    const reservation = await store.tryReserve(
+      reserveReq({
+        amount: 1n,
+        now: 0,
+        safeReleaseAt: 1_000,
+        recoveryReleaseAt: 61_000,
+      }),
+    );
+    if (!reservation.ok) throw new Error("reserve failed");
+
+    expect(await store.releaseExpired(1_000, 60_000)).toBe(1);
+    expect(await store.get(reservation.reservationId)).toMatchObject({
+      status: "expired",
+    });
+    expect(
+      await store.releaseExpired(1_000 + 86_400_000, 60_000),
+    ).toBe(0);
+    expect(await store.get(reservation.reservationId)).toBeUndefined();
+    await store.close();
+  });
+
+  it("prunes settled rows only after the configured maximum window", async () => {
+    const { path } = tempDatabase();
+    const store = await openSqliteStore(path, {
+      maxAccountingWindowMs: 5_000,
+    });
+    const reservation = await store.tryReserve(
+      reserveReq({ amount: 7n, now: 0, windowMs: 1_000 }),
+    );
+    if (!reservation.ok) throw new Error("reserve failed");
+    await store.transition(
+      reservation.reservationId,
+      "reserved",
+      "settled",
+      { settledAt: 100, now: 100 },
+    );
+
+    await store.releaseExpired(5_099, 5_000);
+    expect(await store.get(reservation.reservationId)).toBeDefined();
+    await store.releaseExpired(5_100, 5_000);
+    expect(await store.get(reservation.reservationId)).toBeUndefined();
+    await expect(
+      store.committedAmount(
+        "principal-1",
+        "mandate-1",
+        5_100,
+        5_001,
+      ),
+    ).rejects.toThrow(/exceeds SQLite max accounting window/);
+    await store.close();
+  });
+
+  it("persists one immutable maximum accounting window", async () => {
+    const { path } = tempDatabase();
+    const first = await openSqliteStore(path, {
+      maxAccountingWindowMs: 5_000,
+    });
+    await first.close();
+
+    const second = await openSqliteStore(path, {
+      maxAccountingWindowMs: 5_000,
+    });
+    await second.close();
+    const contracted = await openSqliteStore(path, {
+      maxAccountingWindowMs: 4_000,
+    });
+    await contracted.close();
+    await expect(
+      openSqliteStore(path, { maxAccountingWindowMs: 6_000 }),
+    ).rejects.toThrow(/is 5000; requested window ceiling 6000/);
+  });
+
+  it("enforces a maximum configured by another live connection", async () => {
+    const { path } = tempDatabase();
+    const openedBeforeMaximum = await openSqliteStore(path);
+    const configured = await openSqliteStore(path, {
+      maxAccountingWindowMs: 5_000,
+    });
+
+    await expect(
+      openedBeforeMaximum.tryReserve(
+        reserveReq({ amount: 1n, now: 0, windowMs: 5_001 }),
+      ),
+    ).rejects.toThrow(/exceeds SQLite max accounting window/);
+    await configured.close();
+    await openedBeforeMaximum.close();
+  });
+
+  it("keeps older rows whose own window exceeds a later maximum", async () => {
+    const { path } = tempDatabase();
+    const first = await openSqliteStore(path);
+    const reservation = await first.tryReserve(
+      reserveReq({ amount: 7n, now: 0, windowMs: 10_000 }),
+    );
+    if (!reservation.ok) throw new Error("reserve failed");
+    await first.transition(
+      reservation.reservationId,
+      "reserved",
+      "settled",
+      { settledAt: 100, now: 100 },
+    );
+    await first.close();
+
+    const second = await openSqliteStore(path, {
+      maxAccountingWindowMs: 5_000,
+    });
+    await second.releaseExpired(5_100, 5_000);
+    expect(
+      await second.committedAmount(
+        "principal-1",
+        "mandate-1",
+        5_100,
+        5_000,
+      ),
+    ).toBe(7n);
+    await second.releaseExpired(10_100, 5_000);
+    expect(await second.get(reservation.reservationId)).toBeUndefined();
+    await second.close();
+  });
+
   it("recovers signed row as unknown through full recovery window", async () => {
     const { path } = tempDatabase();
     const first = await openSqliteStore(path);
@@ -584,6 +724,52 @@ describe("SQLite process concurrency", () => {
 });
 
 describe("SQLite startup faults and migrations", () => {
+  it("migrates version 1 in place without losing rows", async () => {
+    const { path } = tempDatabase();
+    const first = await openSqliteStore(path);
+    const reservation = await first.tryReserve(
+      reserveReq({ amount: 7n, now: 0 }),
+    );
+    if (!reservation.ok) throw new Error("reserve failed");
+    await first.close();
+
+    const raw = new DatabaseSync(path);
+    raw.exec(`
+      DROP INDEX reservations_settled_at;
+      DROP INDEX reservations_terminal_updated;
+      DROP INDEX dedup_expires;
+      ALTER TABLE schema_meta DROP COLUMN max_accounting_window_ms;
+      UPDATE schema_meta SET schema_version = 1;
+    `);
+    raw.close();
+
+    const second = await openSqliteStore(path, {
+      maxAccountingWindowMs: 60_000,
+      metadataNow: () => 123,
+    });
+    expect(
+      (await second.get(reservation.reservationId))?.amount,
+    ).toBe(7n);
+    await second.close();
+
+    const verifier = new DatabaseSync(path);
+    const meta = verifier
+      .prepare(
+        `SELECT
+           schema_version,
+           migrated_at_ms,
+           max_accounting_window_ms
+         FROM schema_meta`,
+      )
+      .get();
+    verifier.close();
+    expect(meta).toMatchObject({
+      schema_version: 2,
+      migrated_at_ms: 123,
+      max_accounting_window_ms: 60_000,
+    });
+  });
+
   it("fails when database remains locked beyond retry bound", async () => {
     const { path } = tempDatabase();
     const first = await openSqliteStore(path);

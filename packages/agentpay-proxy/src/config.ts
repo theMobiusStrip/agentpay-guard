@@ -43,6 +43,7 @@ export type StoreKind = "sqlite" | "memory";
 export interface ProxyStoreConfig {
   kind: StoreKind;
   stateDb: string;
+  maxAccountingWindowMs: number;
 }
 
 export const DEFAULT_STATE_DB = ".agentpay-proxy-state.sqlite";
@@ -91,7 +92,11 @@ export function configFromEnv(env: NodeJS.ProcessEnv = process.env): ProxyConfig
 /** Parse CLI-only persistent-store settings. Embedded use injects a store. */
 export function storeConfigFromEnv(
   env: NodeJS.ProcessEnv = process.env,
+  activeWindowMs: number = DEFAULTS.windowMs,
 ): ProxyStoreConfig {
+  if (!Number.isSafeInteger(activeWindowMs) || activeWindowMs <= 0) {
+    throw new Error("activeWindowMs must be a positive safe integer");
+  }
   const rawKind = env.STORE ?? "sqlite";
   if (rawKind !== "sqlite" && rawKind !== "memory") {
     throw new Error(
@@ -102,7 +107,17 @@ export function storeConfigFromEnv(
   if (stateDb.trim() === "") {
     throw new Error("STATE_DB must not be empty");
   }
-  return { kind: rawKind, stateDb };
+  const maxAccountingWindowMs = intFromEnv(
+    env,
+    "MAX_ACCOUNTING_WINDOW_MS",
+    activeWindowMs,
+  );
+  if (maxAccountingWindowMs < activeWindowMs) {
+    throw new Error(
+      "MAX_ACCOUNTING_WINDOW_MS must be at least WINDOW_MS",
+    );
+  }
+  return { kind: rawKind, stateDb, maxAccountingWindowMs };
 }
 
 function intFromEnv(env: NodeJS.ProcessEnv, key: string, fallback: number): number {

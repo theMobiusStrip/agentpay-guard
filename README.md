@@ -154,7 +154,9 @@ settlement until the window slides, then sign a fresh batch" ~2× double-spend t
 a concurrency-only test misses. Expiry is judged against an authoritative clock
 (local time minus a max-skew bound folded into the reorg margin), so a fast local
 clock cannot release a reservation whose authorization can still settle. All of
-this is exercised by the G1 gate.
+this is exercised by the G1 gate. SQLite retention uses a persisted maximum
+accounting window: rows prune only after no allowed future window can count them;
+larger windows fail closed.
 
 ## Layout
 
