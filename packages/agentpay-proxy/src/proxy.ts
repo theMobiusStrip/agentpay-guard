@@ -169,10 +169,22 @@ export function createPaymentProxy(
   app.use(express.json());
 
   app.get("/healthz", (_req, res) => {
-    res.json({ payer: account.address, profile: policy.profile });
+    const ready = guard.isHealthy();
+    res.status(ready ? 200 : 503).json({
+      ready,
+      store: ready ? "ready" : "unavailable",
+      payer: account.address,
+      profile: policy.profile,
+    });
   });
 
   app.post("/paid-fetch", async (req, res) => {
+    if (!guard.isHealthy()) {
+      res.status(503).json({
+        error: "payment store unavailable; restart and recover required",
+      });
+      return;
+    }
     const body = req.body as { url?: unknown; intentId?: unknown } | undefined;
     const target = vetTarget(body?.url, config.allowedHosts);
     if ("error" in target) {
@@ -190,17 +202,37 @@ export function createPaymentProxy(
     try {
       const r = await dedupAls.run({ intentId }, () => fetchWithPay(target.url));
       const settlement = r.headers.get("PAYMENT-RESPONSE"); // settlement receipt (tx hash inside)
+      const responseBody = await r.text();
       res.status(200).json({
         status: r.status,
         intentId,
-        body: await r.text(),
+        body: responseBody,
         ...(settlement ? { settlement } : {}),
       });
+      try {
+        await guard.reconcile();
+      } catch {
+        // Paid response is already delivered. Reconcile latched readiness, so
+        // later paid requests fail closed until restart and recovery.
+      }
     } catch (e) {
+      if (guard.isHealthy()) {
+        try {
+          await guard.reconcile();
+        } catch {
+          // reconcile latches unhealthy; response below stays generic.
+        }
+      }
       // Guard blocks surface as "Payment creation aborted: <reason>".
-      res.status(502).json({ error: e instanceof Error ? e.message : String(e), intentId });
-    } finally {
-      await guard.reconcile(); // deterministic expiry of stale reservations
+      const healthy = guard.isHealthy();
+      res.status(healthy ? 502 : 503).json({
+        error: healthy
+          ? e instanceof Error
+            ? e.message
+            : String(e)
+          : "payment store unavailable; restart and recover required",
+        intentId,
+      });
     }
   });
 

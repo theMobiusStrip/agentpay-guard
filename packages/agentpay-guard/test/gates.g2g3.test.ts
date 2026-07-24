@@ -150,6 +150,7 @@ describe("G3: envelope + adversarial inputs fail closed", () => {
       putIfAbsent: async () => true,
       removeDedup: async () => {},
       releaseExpired: async () => 0,
+      recoverAfterRestart: async () => ({ markedUnknown: 0, expired: 0 }),
       get: async () => undefined,
       committedAmount: async () => 0n,
     };

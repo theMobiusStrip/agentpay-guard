@@ -4,6 +4,7 @@ import { ManualClock } from "../src/clock.js";
 import { InMemoryAtomicStore } from "../src/store/memory.js";
 import type { AuditEvent } from "../src/audit.js";
 import type { InstallOptions } from "../src/guard.js";
+import type { AtomicStore } from "../src/store/types.js";
 import type {
   PaymentCreatedContextLike,
   PaymentCreationContextLike,
@@ -63,6 +64,28 @@ function install(over: Partial<InstallOptions> = {}) {
   return { store, clock, events, client, guard };
 }
 
+function wrapStore(
+  store: AtomicStore,
+  transition: AtomicStore["transition"],
+  removeDedup: AtomicStore["removeDedup"] = (key) =>
+    store.removeDedup(key),
+): AtomicStore {
+  return {
+    tryReserve: (request) => store.tryReserve(request),
+    transition,
+    putIfAbsent: (key, ttlMs, now) =>
+      store.putIfAbsent(key, ttlMs, now),
+    removeDedup,
+    releaseExpired: (now, requestedWindowMs) =>
+      store.releaseExpired(now, requestedWindowMs),
+    recoverAfterRestart: (now, requestedWindowMs) =>
+      store.recoverAfterRestart(now, requestedWindowMs),
+    get: (id) => store.get(id),
+    committedAmount: (principalId, mandateId, now, windowMs) =>
+      store.committedAmount(principalId, mandateId, now, windowMs),
+  };
+}
+
 describe("guard: hook wiring + fail-closed", () => {
   it("allows an in-envelope payment (returns void)", async () => {
     const { client } = install();
@@ -116,6 +139,41 @@ describe("guard: TOCTOU (onAfterPaymentCreation)", () => {
     expect(events.some((e) => e.kind === "signed")).toBe(true);
   });
 
+  it("persists signed authorization reference without payload/signature", async () => {
+    const { client, events, store } = install();
+    const nonce = `0x${"ab".repeat(32)}`;
+    await client.before(ctx());
+    await client.after({
+      ...ctx(),
+      paymentPayload: {
+        x402Version: 2,
+        payload: {
+          authorization: {
+            from: "0xPayer",
+            to: "0xmerchant",
+            value: "100000",
+            validBefore: "1021",
+            nonce,
+          },
+          signature: "must-not-enter-store",
+        },
+      },
+    });
+    const reservationId = events.find(
+      (event) => event.kind === "signed",
+    )?.reservationId;
+    if (reservationId === undefined) {
+      throw new Error("signed reservation missing");
+    }
+    expect((await store.get(reservationId))?.authorization).toEqual({
+      network: BASE_SEPOLIA,
+      asset: USDC,
+      from: "0xpayer",
+      nonce,
+      validBefore: 1021,
+    });
+  });
+
   it("diverged signed payTo throws to abort the payment", async () => {
     const { client, events } = install();
     await client.before(ctx());
@@ -146,6 +204,89 @@ describe("guard: lifecycle transitions", () => {
     expect(retry).toBeUndefined();
   });
 
+  it("pre-sign release CAS failure latches new payments closed", async () => {
+    const backing = new InMemoryAtomicStore();
+    const broken = wrapStore(
+      backing,
+      async (id, from, to, opts) =>
+        to === "released"
+          ? false
+          : backing.transition(id, from, to, opts),
+    );
+    const { client, guard } = install({
+      store: broken,
+      resolveDedupContext: () => ({ paymentIdentifier: "pid-cas" }),
+    });
+    await client.before(ctx());
+    await expect(
+      client.failure({ ...ctx(), error: new Error("signer down") }),
+    ).rejects.toThrow(/lifecycle failure/);
+    expect(guard.isHealthy()).toBe(false);
+    await expect(client.before(ctx())).resolves.toMatchObject({
+      abort: true,
+      reason: expect.stringContaining("unhealthy"),
+    });
+  });
+
+  it("pre-sign release store throw latches new payments closed", async () => {
+    const backing = new InMemoryAtomicStore();
+    const broken = wrapStore(
+      backing,
+      async (id, from, to, opts) => {
+        if (to === "released") throw new Error("database unavailable");
+        return backing.transition(id, from, to, opts);
+      },
+    );
+    const { client, guard } = install({ store: broken });
+    await client.before(ctx());
+    await expect(
+      client.failure({ ...ctx(), error: new Error("signer down") }),
+    ).rejects.toThrow(/lifecycle failure/);
+    expect(guard.isHealthy()).toBe(false);
+  });
+
+  it("pre-sign dedup removal throw latches new payments closed", async () => {
+    const backing = new InMemoryAtomicStore();
+    const broken = wrapStore(
+      backing,
+      (id, from, to, opts) =>
+        backing.transition(id, from, to, opts),
+      async () => {
+        throw new Error("dedup database unavailable");
+      },
+    );
+    const { client, guard } = install({
+      store: broken,
+      resolveDedupContext: () => ({ paymentIdentifier: "pid-remove" }),
+    });
+    await client.before(ctx());
+    await expect(
+      client.failure({ ...ctx(), error: new Error("signer down") }),
+    ).rejects.toThrow(/lifecycle failure/);
+    expect(guard.isHealthy()).toBe(false);
+  });
+
+  it("duplicate reservation release failure latches new payments closed", async () => {
+    const backing = new InMemoryAtomicStore();
+    const broken = wrapStore(
+      backing,
+      async (id, from, to, opts) =>
+        to === "released"
+          ? false
+          : backing.transition(id, from, to, opts),
+    );
+    const { client, guard } = install({
+      store: broken,
+      resolveDedupContext: () => ({ paymentIdentifier: "pid-duplicate" }),
+    });
+    await client.before(ctx());
+    await expect(client.before(ctx())).resolves.toMatchObject({
+      abort: true,
+      reason: expect.stringContaining("internal error"),
+    });
+    expect(guard.isHealthy()).toBe(false);
+  });
+
   it("successful settle transitions to settled and keeps counting in-window", async () => {
     const { client, store, events } = install();
     const nonce = "0x" + "cd".repeat(32);
@@ -163,6 +304,82 @@ describe("guard: lifecycle transitions", () => {
     expect(events.some((e) => e.kind === "settled")).toBe(true);
     const committed = await store.committedAmount("p1", "__no_mandate__", 1_000_000, 60_000);
     expect(committed).toBe(100_000n);
+  });
+
+  it("signed-state CAS failure throws and latches fail-closed", async () => {
+    const backing = new InMemoryAtomicStore();
+    const broken = wrapStore(
+      backing,
+      async (id, from, to, opts) =>
+        to === "signed"
+          ? false
+          : backing.transition(id, from, to, opts),
+    );
+    const { client, guard } = install({ store: broken });
+    await client.before(ctx());
+    await expect(
+      client.after({
+        ...ctx(),
+        paymentPayload: {
+          x402Version: 2,
+          payload: {
+            authorization: {
+              to: "0xmerchant",
+              value: "100000",
+              validBefore: "0",
+            },
+          },
+        },
+      }),
+    ).rejects.toThrow(/lifecycle failure/);
+    expect(guard.isHealthy()).toBe(false);
+    await expect(client.before(ctx())).resolves.toMatchObject({
+      abort: true,
+      reason: expect.stringContaining("unhealthy"),
+    });
+  });
+
+  it("post-response store error latches new payments closed", async () => {
+    const backing = new InMemoryAtomicStore();
+    const broken = wrapStore(
+      backing,
+      async (id, from, to, opts) => {
+        if (to === "settled") throw new Error("database unavailable");
+        return backing.transition(id, from, to, opts);
+      },
+    );
+    const { client, guard } = install({ store: broken });
+    const nonce = `0x${"ef".repeat(32)}`;
+    await client.before(ctx());
+    await client.after({
+      ...ctx(),
+      paymentPayload: {
+        x402Version: 2,
+        payload: {
+          authorization: {
+            from: "0xpayer",
+            to: "0xmerchant",
+            value: "100000",
+            validBefore: "0",
+            nonce,
+          },
+        },
+      },
+    });
+    await expect(
+      client.response({
+        paymentPayload: {
+          x402Version: 2,
+          payload: { authorization: { nonce } },
+        },
+        requirements: requirements(),
+        settleResponse: { success: true },
+      }),
+    ).rejects.toThrow(/lifecycle failure/);
+    expect(guard.isHealthy()).toBe(false);
+    await expect(client.before(ctx())).resolves.toMatchObject({
+      abort: true,
+    });
   });
 });
 
@@ -192,6 +409,27 @@ describe("guard: escalate (G3)", () => {
     expect(committed).toBe(0n);
   });
 
+  it("escalation release CAS failure latches new payments closed", async () => {
+    const backing = new InMemoryAtomicStore();
+    const broken = wrapStore(
+      backing,
+      async (id, from, to, opts) =>
+        to === "released"
+          ? false
+          : backing.transition(id, from, to, opts),
+    );
+    const { client, guard } = install({
+      store: broken,
+      escalationPolicy: () => true,
+      onEscalate: () => "block",
+    });
+    await expect(client.before(ctx())).resolves.toMatchObject({
+      abort: true,
+      reason: expect.stringContaining("internal error"),
+    });
+    expect(guard.isHealthy()).toBe(false);
+  });
+
   it("escalate + block un-consumes the dedup key so a re-attempt is not falsely blocked", async () => {
     // Regression: the escalation-deny path released the reservation but left the
     // dedup key consumed, so a legitimate re-attempt of the same payment was
@@ -217,5 +455,6 @@ describe("guard: exports", () => {
     const { guard } = install();
     expect(guard).toBeInstanceOf(AgentPayGuard);
     expect(typeof guard.reconcile).toBe("function");
+    expect(guard.isHealthy()).toBe(true);
   });
 });

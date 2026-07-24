@@ -12,7 +12,7 @@ harm-metric benchmark. npm workspaces monorepo. See `README.md` for the full sto
 ## Layout
 
 ```
-packages/agentpay-guard/               the client plugin (the deliverable, publishable)
+packages/agentpay-guard/               client plugin + restart-safe SQLite entry (publishable)
 packages/x402-idempotency-middleware/  server replay middleware (publishable)
 packages/agentpay-proxy/               guarded payment proxy service (publishable; CLI + MCP)
 packages/drainbench/                   benchmark harness + agent scaffold (private)
@@ -28,7 +28,7 @@ absent in a fresh clone.)
 ## Commands
 
 ```bash
-npm ci && npm run build          # build the two publishable packages
+npm ci && npm run build          # build all publishable packages
 npx vitest run                   # full test suite (all packages)
 npx tsc -b                       # typecheck published packages
 npx tsc -p spike/tsconfig.json                       # typecheck spike
@@ -117,6 +117,7 @@ diff* widen a `SECURITY.md` "Honest limitation" or break the invariant?
 | --- | --- |
 | `packages/agentpay-guard/src/store/memory.ts` | `tryReserve` atomic; pending holds cap at any age; settled attributed at settlement time; no early release; a new bug class ⇒ `store.g1.test.ts`. |
 | `packages/agentpay-guard/src/store/types.ts` | Store contract stays atomic (`tryReserve`/`transition` CAS/`putIfAbsent`/`releaseExpired`), `now` injected — an external store must pass G1. |
+| `packages/agentpay-guard/src/store/sqlite/*` | SQLite transactions match store contract; recovery deadlines never shrink; failures propagate; database never stores keys, signatures, or raw payloads. |
 | `packages/agentpay-guard/src/evaluate.ts` | Fail-closed check order; reserve-then-dedup with release-on-duplicate; `validBefore` clamp; dedup keys principal-scoped. |
 | `packages/agentpay-guard/src/guard.ts` | Catch-all returns `{ abort: true }` (never `void` = allow); post-sign lifecycle correlates by nonce; `onFailure` never releases a *signed* hold; `onAfter` TOCTOU check. |
 | `packages/agentpay-guard/src/policy/*.ts` | Envelope deny-by-default; intent fails safe when intent is agent-derived; dedup keys are payer-owned, not merchant-jitterable. |

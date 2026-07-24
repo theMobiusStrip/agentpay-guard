@@ -2,11 +2,15 @@ import { type AuditSink, noopAudit } from "./audit.js";
 import { type Clock, safeReleaseAtMs, systemClock } from "./clock.js";
 import { evaluatePayment } from "./evaluate.js";
 import { type DedupContext } from "./policy/dedup.js";
-import type { AtomicStore } from "./store/types.js";
+import type {
+  AtomicStore,
+  TransitionOptions,
+} from "./store/types.js";
 import type {
   Decision,
   GuardDecision,
   Policy,
+  ReservationStatus,
   ResolvedPayment,
   VerifiedMandate,
 } from "./types.js";
@@ -107,11 +111,19 @@ function safeBigInt(s: string): bigint {
  */
 function extractSignedAuth(
   payload: Record<string, unknown>,
-): { to?: string; value?: bigint; validBefore?: number; nonce?: string } | undefined {
+): {
+  from?: string;
+  to?: string;
+  value?: bigint;
+  validBefore?: number;
+  nonce?: string;
+} | undefined {
   const auth = (payload["authorization"] ?? payload["auth"]) as
     | Record<string, unknown>
     | undefined;
   if (!auth || typeof auth !== "object") return undefined;
+  const from =
+    typeof auth["from"] === "string" ? auth["from"].toLowerCase() : undefined;
   const to = typeof auth["to"] === "string" ? auth["to"].toLowerCase() : undefined;
   const value =
     typeof auth["value"] === "string" || typeof auth["value"] === "number"
@@ -121,7 +133,14 @@ function extractSignedAuth(
   const validBefore =
     typeof vb === "string" || typeof vb === "number" ? Number(vb) : undefined;
   const nonce = typeof auth["nonce"] === "string" ? auth["nonce"].toLowerCase() : undefined;
-  const out: { to?: string; value?: bigint; validBefore?: number; nonce?: string } = {};
+  const out: {
+    from?: string;
+    to?: string;
+    value?: bigint;
+    validBefore?: number;
+    nonce?: string;
+  } = {};
+  if (from !== undefined) out.from = from;
   if (to !== undefined) out.to = to;
   if (value !== undefined && value >= 0n) out.value = value;
   if (validBefore !== undefined && Number.isFinite(validBefore)) out.validBefore = validBefore;
@@ -154,6 +173,8 @@ export class AgentPayGuard {
    * after→response ambiguity that could settle/expire the wrong reservation.
    */
   private readonly signedByNonce = new Map<string, PendingEntry>();
+  /** Fatal store/correlation fault. New payment creation stays blocked. */
+  private unhealthyReason?: string;
 
   constructor(
     private readonly store: AtomicStore,
@@ -163,6 +184,82 @@ export class AgentPayGuard {
     private readonly audit: AuditSink,
     private readonly opts: InstallOptions,
   ) {}
+
+  isHealthy(): boolean {
+    return this.unhealthyReason === undefined;
+  }
+
+  private latchUnhealthy(
+    detail: string,
+    reservationId?: string,
+    cause?: unknown,
+  ): void {
+    const causeDetail =
+      cause === undefined
+        ? ""
+        : `: ${
+            cause instanceof Error
+              ? cause.message
+              : typeof cause === "string"
+                ? cause
+                : "unknown error"
+          }`;
+    const fullDetail = `${detail}${causeDetail}`;
+    this.unhealthyReason ??= fullDetail;
+    this.audit({
+      kind: "error",
+      ...(reservationId !== undefined ? { reservationId } : {}),
+      detail: fullDetail,
+    });
+  }
+
+  private failLifecycle(
+    detail: string,
+    reservationId?: string,
+    cause?: unknown,
+  ): never {
+    this.latchUnhealthy(detail, reservationId, cause);
+    throw new Error(`agentpay-guard lifecycle failure: ${detail}`);
+  }
+
+  private async transitionOrFail(
+    reservationId: string,
+    from: ReservationStatus,
+    to: ReservationStatus,
+    opts?: TransitionOptions,
+  ): Promise<void> {
+    let ok: boolean;
+    try {
+      ok = await this.store.transition(reservationId, from, to, opts);
+    } catch (err) {
+      this.failLifecycle(
+        `${from}->${to} store transition threw`,
+        reservationId,
+        err,
+      );
+    }
+    if (!ok) {
+      this.failLifecycle(
+        `${from}->${to} CAS failed`,
+        reservationId,
+      );
+    }
+  }
+
+  private async removeDedupOrFail(
+    dedupKey: string,
+    reservationId: string,
+  ): Promise<void> {
+    try {
+      await this.store.removeDedup(dedupKey);
+    } catch (err) {
+      this.failLifecycle(
+        "dedup removal store operation threw",
+        reservationId,
+        err,
+      );
+    }
+  }
 
   /**
    * Mark every entry currently queued under `sig` as contended. Called whenever
@@ -208,6 +305,12 @@ export class AgentPayGuard {
   async before(
     ctx: PaymentCreationContextLike,
   ): Promise<void | { abort: true; reason: string }> {
+    if (!this.isHealthy()) {
+      return {
+        abort: true,
+        reason: "agentpay-guard unhealthy after lifecycle failure (fail-closed)",
+      };
+    }
     // Fail-CLOSED contract (Q1b): any thrown/unexpected error must abort. We
     // never `return;` (void === allow) from a catch. The catch-all also yields a
     // clean SDK "Payment creation aborted: <reason>" instead of a raw crash.
@@ -215,10 +318,7 @@ export class AgentPayGuard {
     try {
       decision = await this.decide(ctx);
     } catch (err) {
-      this.audit({
-        kind: "error",
-        detail: `guard hook threw: ${err instanceof Error ? err.message : String(err)}`,
-      });
+      this.latchUnhealthy("guard hook threw", undefined, err);
       return { abort: true, reason: "agentpay-guard internal error (fail-closed)" };
     }
     this.audit({ kind: "decision", decision });
@@ -254,18 +354,22 @@ export class AgentPayGuard {
         : "block";
       this.audit({ kind: "escalate", reservationId: decision.reservationId, detail: handled });
       if (handled !== "allow") {
-        const released = await this.store.transition(
+        await this.transitionOrFail(
           decision.reservationId,
           "reserved",
           "released",
+          { now },
         );
         // Un-consume the dedup key (exact, known here — no fungible pop) so a
         // later legitimate re-attempt of the escalated payment is not falsely
         // blocked as a duplicate. Mirrors onFailure's release path: only when the
         // CAS actually released our reservation (escalation is strictly pre-sign,
         // so this can never touch a signed hold's key regardless).
-        if (released && decision.dedupKey !== undefined) {
-          await this.store.removeDedup(decision.dedupKey);
+        if (decision.dedupKey !== undefined) {
+          await this.removeDedupOrFail(
+            decision.dedupKey,
+            decision.reservationId,
+          );
         }
         return {
           decision: "block",
@@ -338,7 +442,7 @@ export class AgentPayGuard {
     // Extend safeReleaseAt to cover the ACTUAL signed validBefore (handles
     // signing latency: the SDK signs validBefore = signTime + maxTimeoutSeconds,
     // and signTime > hook time), so reconcile can never release it early.
-    const transitionOpts: { safeReleaseAt?: number } = {};
+    const transitionOpts: TransitionOptions = { now: this.clock.now() };
     if (signed?.validBefore !== undefined) {
       transitionOpts.safeReleaseAt = safeReleaseAtMs(
         signed.validBefore,
@@ -346,24 +450,34 @@ export class AgentPayGuard {
         this.policy.maxClockSkewMs,
       );
     }
-    const ok = await this.store.transition(
+    if (
+      signed?.from !== undefined &&
+      signed.nonce !== undefined &&
+      signed.validBefore !== undefined
+    ) {
+      transitionOpts.authorization = {
+        network: entry.payment.network,
+        asset: entry.payment.asset,
+        from: signed.from,
+        nonce: signed.nonce,
+        validBefore: signed.validBefore,
+      };
+    }
+    await this.transitionOrFail(
       entry.reservationId,
       "reserved",
       "signed",
       transitionOpts,
     );
-    if (!ok) {
-      // Should not happen (we popped a reserved entry); surface loudly.
-      this.audit({
-        kind: "error",
-        reservationId: entry.reservationId,
-        detail: "after(): reserved->signed CAS failed (correlation invariant broken)",
-      });
-      return;
-    }
     this.audit({ kind: "signed", reservationId: entry.reservationId });
     // Correlate the rest of the lifecycle by the payer-signed nonce.
     if (signed?.nonce) {
+      if (this.signedByNonce.has(signed.nonce)) {
+        this.failLifecycle(
+          "duplicate signed authorization nonce",
+          entry.reservationId,
+        );
+      }
       this.signedByNonce.set(signed.nonce, entry);
     }
   }
@@ -384,22 +498,22 @@ export class AgentPayGuard {
     // entries here; signed entries live in signedByNonce). Release it. Releasing
     // the (fungible) reservation is amount-neutral even under mis-attribution.
     // We never release a `signed` authorization's hold — that is a real overspend.
-    const ok = await this.store.transition(entry.reservationId, "reserved", "released");
-    if (!ok) {
-      this.audit({
-        kind: "error",
-        reservationId: entry.reservationId,
-        detail: "onFailure(): reserved->released CAS failed (entry not reserved)",
-      });
-      return;
-    }
+    await this.transitionOrFail(
+      entry.reservationId,
+      "reserved",
+      "released",
+      { now: this.clock.now() },
+    );
     // Un-consume the dedup key so a legitimate retry is not falsely blocked — but
     // ONLY when the group was uncontended, so the popped entry provably IS the
     // failed payment. Under contention, retain the key (fail toward over-block:
     // the failed payment's retry waits out the TTL) rather than risk freeing a
     // signed payment's key. The cap + server middleware remain the backstops.
     if (entry.dedupKey !== undefined && !contended) {
-      await this.store.removeDedup(entry.dedupKey);
+      await this.removeDedupOrFail(
+        entry.dedupKey,
+        entry.reservationId,
+      );
     }
     this.audit({
       kind: "released",
@@ -419,25 +533,24 @@ export class AgentPayGuard {
     const nonce = signed?.nonce;
     const entry = nonce ? this.signedByNonce.get(nonce) : undefined;
     if (!entry || !nonce) return; // no nonce-correlated signed reservation
-    this.signedByNonce.delete(nonce);
     if (ctx.settleResponse?.success) {
-      const ok = await this.store.transition(entry.reservationId, "signed", "settled", {
+      await this.transitionOrFail(entry.reservationId, "signed", "settled", {
+        now: this.clock.now(),
         settledAt: this.clock.now(),
       });
-      if (!ok) {
-        this.audit({
-          kind: "error",
-          reservationId: entry.reservationId,
-          detail: "onResponse(): signed->settled CAS failed",
-        });
-        return;
-      }
+      this.signedByNonce.delete(nonce);
       this.audit({ kind: "settled", reservationId: entry.reservationId });
     } else if (ctx.error || ctx.settleResponse?.success === false) {
       // Signed and sent, but settlement failed/unknown. Move to `unknown` so it
       // keeps holding cap until reconciliation (releaseExpired) governs it
       // deterministically — never released early.
-      await this.store.transition(entry.reservationId, "signed", "unknown");
+      await this.transitionOrFail(
+        entry.reservationId,
+        "signed",
+        "unknown",
+        { now: this.clock.now() },
+      );
+      this.signedByNonce.delete(nonce);
       this.audit({
         kind: "expired",
         reservationId: entry.reservationId,
@@ -452,14 +565,26 @@ export class AgentPayGuard {
    * nonce map of entries whose reservation has reached a terminal state.
    */
   async reconcile(now = this.clock.now()): Promise<number> {
-    const released = await this.store.releaseExpired(now);
-    for (const [nonce, entry] of this.signedByNonce) {
-      const r = await this.store.get(entry.reservationId);
-      if (!r || (r.status !== "signed" && r.status !== "submitted")) {
-        this.signedByNonce.delete(nonce);
+    try {
+      const released = await this.store.releaseExpired(
+        now,
+        this.policy.windowMs,
+      );
+      for (const [nonce, entry] of this.signedByNonce) {
+        const r = await this.store.get(entry.reservationId);
+        if (
+          !r ||
+          (r.status !== "signed" &&
+            r.status !== "submitted" &&
+            r.status !== "unknown")
+        ) {
+          this.signedByNonce.delete(nonce);
+        }
       }
+      return released;
+    } catch (err) {
+      this.failLifecycle("reconciliation store operation threw", undefined, err);
     }
-    return released;
   }
 }
 

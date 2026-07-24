@@ -129,6 +129,7 @@ export async function evaluatePayment(
       ? { aggregateCap: policy.principalAggregateCap }
       : {}),
     safeReleaseAt,
+    recoveryReleaseAt: safeReleaseAt + policy.windowMs,
     ...(policy.perPayeeReservationLimit !== undefined
       ? { perPayeeReservationLimit: policy.perPayeeReservationLimit }
       : {}),
@@ -174,7 +175,17 @@ export async function evaluatePayment(
   if (!firstSighting) {
     // A duplicate slipped past the cap; release the reservation we just made so
     // the cap is not held by a purchase we are refusing.
-    await store.transition(reserve.reservationId, "reserved", "released");
+    const released = await store.transition(
+      reserve.reservationId,
+      "reserved",
+      "released",
+      { now },
+    );
+    if (!released) {
+      throw new Error(
+        "duplicate reservation reserved->released CAS failed",
+      );
+    }
     return block("duplicate_authorization", `duplicate authorization for ${dedupKey}`, "dedup");
   }
 

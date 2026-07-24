@@ -7,6 +7,7 @@ export default tseslint.config(
     ignores: [
       "**/dist/**",
       "**/node_modules/**",
+      "**/.claude/worktrees/**",
       "bench/results/**",
       "eslint.config.js",
     ],
@@ -16,7 +17,11 @@ export default tseslint.config(
     languageOptions: {
       parserOptions: {
         projectService: {
-          allowDefaultProject: ["vitest.config.ts", "packages/*/test/*.ts"],
+          allowDefaultProject: [
+            "vitest.config.ts",
+            "packages/*/test/*.ts",
+            "scripts/*.mjs",
+          ],
           maximumDefaultProjectFileMatchCount_THIS_WILL_SLOW_DOWN_LINTING: 40,
         },
         tsconfigRootDir: import.meta.dirname,
@@ -42,7 +47,7 @@ export default tseslint.config(
   {
     // Tests drive the guard through deliberately duck-typed fakes; unsafe-any
     // ceremony there adds noise, not safety. Async rules stay on.
-    files: ["packages/*/test/**/*.ts"],
+    files: ["packages/*/test/**/*.ts", "scripts/*.mjs"],
     rules: {
       "@typescript-eslint/no-unsafe-assignment": "off",
       "@typescript-eslint/no-unsafe-argument": "off",

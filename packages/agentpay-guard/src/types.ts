@@ -24,7 +24,7 @@ export type ReservationStatus =
   | "signed" // authorization signed; payload may have left the process
   | "submitted" // handed to facilitator / broadcast
   | "settled" // TERMINAL: confirmed spend, attributed at settlement time
-  | "unknown" // signed but outcome unobserved; holds cap until safeReleaseAt
+  | "unknown" // signed, outcome unobserved; holds until recoveryReleaseAt
   | "expired" // TERMINAL: past validBefore(+margin+skew), can never settle
   | "released"; // TERMINAL: pre-sign abort/failure, budget returned immediately
 

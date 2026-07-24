@@ -2,10 +2,16 @@
 
 [![CI](https://github.com/theMobiusStrip/agentpay-guard/actions/workflows/ci.yml/badge.svg)](https://github.com/theMobiusStrip/agentpay-guard/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-![Node ≥22](https://img.shields.io/badge/node-%E2%89%A522-brightgreen)
+![Node ≥22.13](https://img.shields.io/badge/node-%E2%89%A522.13-brightgreen)
 [![npm agentpay-guard](https://img.shields.io/npm/v/@themobiusstrip/agentpay-guard?label=agentpay-guard&color=blueviolet)](https://www.npmjs.com/package/@themobiusstrip/agentpay-guard)
-[![npm x402-idempotency-middleware](https://img.shields.io/npm/v/@themobiusstrip/x402-idempotency-middleware?label=x402-idempotency-middleware&color=brightgreen)](https://www.npmjs.com/package/@themobiusstrip/x402-idempotency-middleware)
-[![npm agentpay-proxy](https://img.shields.io/npm/v/@themobiusstrip/agentpay-proxy?label=agentpay-proxy&color=cb3837)](https://www.npmjs.com/package/@themobiusstrip/agentpay-proxy)
+
+> **Main artifact: [`@themobiusstrip/agentpay-guard`](https://www.npmjs.com/package/@themobiusstrip/agentpay-guard).**
+> One install ships policy enforcement, the atomic store contract, volatile
+> memory state, and restart-safe SQLite state.
+
+```bash
+npm i @themobiusstrip/agentpay-guard
+```
 
 **Hard spending limits for AI agents that pay over x402 — enforced below the LLM,
 before anything is signed, fail-closed.** agentpay-guard installs on x402 v2's
@@ -26,22 +32,29 @@ the Grok/Bankr agent wallet lost ~$150k–200k to a two-stage prompt injection
 level defenses get evaded; spend enforcement has to run **below the model**, in
 code, with the worst case bounded in dollars.
 
-## What ships
+## Artifact hierarchy
 
-- **[`@themobiusstrip/agentpay-guard`](https://www.npmjs.com/package/@themobiusstrip/agentpay-guard)** — the client plugin. Atomic budget cap spanning the
-  sign→settle gap (rolling window + principal aggregate), trusted-intent
-  constraint check, duplicate-auth guard. Everything outside the MVP envelope
-  (`exact` + EIP-3009 + Base Sepolia USDC) fails closed.
-- **[`@themobiusstrip/x402-idempotency-middleware`](https://www.npmjs.com/package/@themobiusstrip/x402-idempotency-middleware)** — replay defense for the **resource server** (the API being paid — e.g. a paid weather API or MCP tool server), keyed on the
-  payer-signed EIP-3009 authorization (claim-with-lease + cached response). Covers
-  the attack class the payer-side plugin structurally can't see.
-- **[`@themobiusstrip/agentpay-proxy`](https://www.npmjs.com/package/@themobiusstrip/agentpay-proxy)** — the guard's
-  flagship deployment as a ready-to-run service: x402 client + guard + signer in
-  one out-of-agent process, agent gets a single `paid_fetch` capability over HTTP
-  or MCP (`npx @themobiusstrip/agentpay-proxy`, `agentpay-proxy mcp`).
-- **DrainBench** (`packages/drainbench`, private) — a reproducible, offline, deterministic
-  harm benchmark: the same attacks with and without the guard, losses measured in
-  dollars (below).
+### Main shipment
+
+**[`@themobiusstrip/agentpay-guard`](https://www.npmjs.com/package/@themobiusstrip/agentpay-guard)**
+is the product. The client plugin enforces an atomic budget cap spanning the
+sign→settle gap (rolling window + principal aggregate), trusted-intent constraint
+check, and duplicate-auth guard. Everything outside the MVP envelope (`exact` +
+EIP-3009 + Base Sepolia USDC) fails closed. Includes the restart-safe
+`@themobiusstrip/agentpay-guard/sqlite` store entry for one-host deployments.
+
+### Supporting artifacts
+
+- **[`@themobiusstrip/agentpay-proxy`](https://www.npmjs.com/package/@themobiusstrip/agentpay-proxy)**
+  — ready-to-run deployment wrapper around the guard: x402 client + guard +
+  signer in one out-of-agent process. Agent gets one `paid_fetch` capability over
+  HTTP or MCP. No separate policy engine.
+- **[`@themobiusstrip/x402-idempotency-middleware`](https://www.npmjs.com/package/@themobiusstrip/x402-idempotency-middleware)**
+  — merchant-side companion for replay defense on the **resource server**, keyed
+  on the payer-signed EIP-3009 authorization (claim-with-lease + cached response).
+  Covers the attack class the payer-side plugin structurally can't see.
+- **DrainBench** (`packages/drainbench`, private) — validation only. Reproducible
+  harm benchmark comparing attacks with and without the guard.
 
 ## Measured deltas (DrainBench deterministic lane)
 
@@ -141,15 +154,17 @@ settlement until the window slides, then sign a fresh batch" ~2× double-spend t
 a concurrency-only test misses. Expiry is judged against an authoritative clock
 (local time minus a max-skew bound folded into the reorg margin), so a fast local
 clock cannot release a reservation whose authorization can still settle. All of
-this is exercised by the G1 gate.
+this is exercised by the G1 gate. SQLite retention uses a persisted maximum
+accounting window: rows prune only after no allowed future window can count them;
+larger windows fail closed.
 
 ## Layout
 
 ```
-packages/agentpay-guard/               the client plugin (the deliverable)
-packages/x402-idempotency-middleware/  server replay middleware (custody artifact)
-packages/agentpay-proxy/               guarded payment proxy service (CLI + MCP + embeddable)
-packages/drainbench/                   the DrainBench harm-metric benchmark + agent scaffold
+packages/agentpay-guard/               MAIN: plugin + restart-safe SQLite entry
+packages/agentpay-proxy/               SUPPORT: deployment wrapper (CLI + MCP)
+packages/x402-idempotency-middleware/  SUPPORT: merchant-side replay defense
+packages/drainbench/                   TEST: harm-metric benchmark + agent scaffold
 examples/                              worked examples (claude-proxy, raw-viem) + paid-site merchant demo
 spike/hook-probe/                      offline hook probe against the real SDK
 spike/e2e/                             funded Base Sepolia round-trip harness

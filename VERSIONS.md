@@ -42,4 +42,4 @@ domain `{ name, version, chainId:84532, verifyingContract: USDC }`. Nonce =
 
 ## Toolchain
 
-- Node ≥ 22 (dev on 26.3.0), TypeScript 5.8.3, vitest 3.2.4, tsx 4.20.3.
+- Node ≥ 22.13.0 (dev on 26.3.0), TypeScript 5.8.3, vitest 3.2.4, tsx 4.20.3.

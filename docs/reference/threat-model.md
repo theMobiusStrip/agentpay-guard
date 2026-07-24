@@ -48,10 +48,11 @@ The `examples/raw-viem.ts` co-located-key variant is fine for brevity but is
 
 ## Load-bearing assumptions
 
-- **Atomicity domain.** The bundled in-memory store is **single-process**. A
-  **shared store (Redis Lua / Postgres serializable) is REQUIRED for
-  multi-worker** — two workers sharing a `principalId` with per-process stores
-  each get the full cap. The G1 suite must pass against every shipped store.
+- **Atomicity domain.** The bundled memory store is volatile and
+  **single-process**. Proxy CLI defaults to restart-safe SQLite for one active
+  process per database. PostgreSQL is required for multi-worker / multi-host
+  lifecycle ownership. Two workers with per-process stores each get full cap.
+  G1 runs unchanged against memory plus one- and two-connection SQLite.
 - **Clock / skew.** Reservation expiry is judged against an authoritative clock
   (local time minus a stated `maxClockSkewMs`, folded into the reorg margin), so a
   fast local clock cannot release a still-settleable authorization. The skew bound
@@ -70,3 +71,10 @@ named: **per-payee reservation limit** (built, measured — DrainBench squat row
 short accepted `validBefore` horizons (the validity clamp), escalate-on-repeated-
 expiry (named). `benign_false_block_rate` measures only *accidental* positives; the
 squat fixture measures the *weaponized* case separately.
+
+Crash recovery also fails toward availability: recovered nonterminal
+authorizations become `unknown` and hold full cap through
+`safeReleaseAt + max(original windowMs, active windowMs)`. Deadline extension
+happens before expiry, so post-restart window growth cannot forget possibly
+settled spend. This may over-block after crash. It prevents lost settlement
+responses from reopening budget early.

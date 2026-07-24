@@ -36,7 +36,42 @@ installAgentPayGuard(client, {
 
 The returned `AgentPayGuard` drives the reservation state machine
 (`reconcile(now)` expires provably-dead reservations). The store contract
-(`tryReserve` / `transition` / `putIfAbsent` / `removeDedup` / `releaseExpired`,
-with `now` injected) is the atomicity boundary — a shared external store (Redis
-Lua / Postgres serializable) is **required** for multi-worker deployments and must
-pass the G1 suite.
+(`tryReserve` / `transition` / `putIfAbsent` / `removeDedup` /
+`releaseExpired` / `recoverAfterRestart`, with injected time) is atomicity
+boundary. `InMemoryAtomicStore` is volatile single-process state.
+`@themobiusstrip/agentpay-guard/sqlite` supplies restart-safe one-host state.
+PostgreSQL is required for multi-worker / multi-host lifecycle ownership.
+
+## Persistent SQLite
+
+SQLite ships in this package through a Node-specific subpath. Beta while
+Node's built-in `node:sqlite` API remains experimental. Requires Node
+`>=22.13.0`.
+
+```ts
+import { openSqliteStore } from "@themobiusstrip/agentpay-guard/sqlite";
+
+const store = await openSqliteStore(".agentpay-proxy-state.sqlite", {
+  maxAccountingWindowMs: 300_000,
+});
+const recovered = await store.recoverAfterRestart(Date.now(), 300_000);
+// Pass store to installAgentPayGuard() or createPaymentProxy().
+```
+
+Store opens in WAL mode with full synchronous durability, bounded lock waits,
+schema version checks, and mode `0600`. Missing, locked, corrupt, read-only, or
+newer-schema state throws. No memory fallback.
+
+Reservations, rolling-window attribution, and payer-owned dedup keys persist.
+Signed rows retain only `{ network, asset, from, nonce, validBefore }`; private
+keys, signatures, and raw payment payloads never enter database.
+
+Expired dedup rows are removed globally. Terminal reservations retain a 24-hour
+audit tail. `maxAccountingWindowMs` enables safe settled-row pruning and becomes
+immutable for that database; later lower ceilings reuse it, while requested
+windows above it fail closed. Omit the option to keep settled history instead
+of risking future-window undercount.
+
+SQLite supports one active proxy process per database. Independent SQLite
+connections serialize accounting, but process-local x402 lifecycle correlation
+still requires one proxy owner. Call `close()` after stopping traffic.

@@ -18,9 +18,12 @@ export type { EvaluateDeps, EvaluateInput } from "./evaluate.js";
 export { InMemoryAtomicStore } from "./store/memory.js";
 export type {
   AtomicStore,
+  RecoveryResult,
   Reservation,
   ReserveRequest,
   ReserveResult,
+  SignedAuthorizationReference,
+  TransitionOptions,
 } from "./store/types.js";
 
 export { ManualClock, systemClock, safeReleaseAtMs } from "./clock.js";
