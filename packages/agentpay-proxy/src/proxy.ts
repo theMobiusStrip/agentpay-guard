@@ -95,12 +95,23 @@ export function createPaymentProxy(
   config: ProxyConfig,
   hooks: ProxyHooks = {},
 ): PaymentProxy {
+  const maxPaymentAmount: unknown = config.maxPaymentAmount;
+  if (
+    maxPaymentAmount !== undefined &&
+    (typeof maxPaymentAmount !== "bigint" || maxPaymentAmount < 0n)
+  ) {
+    throw new Error("maxPaymentAmount must be a non-negative bigint");
+  }
+
   const account = privateKeyToAccount(payerKey);
 
   const policy: Policy = {
     profile: config.mandate ? "mandate-required" : "budget-only",
     windowMs: config.windowMs,
     perMandateCap: config.perMandateCap,
+    ...(maxPaymentAmount !== undefined
+      ? { maxPaymentAmount }
+      : {}),
     principalAggregateCap: config.principalAggregateCap,
     envelope: {
       schemes: ["exact"],

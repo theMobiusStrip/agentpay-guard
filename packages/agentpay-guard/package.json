@@ -1,7 +1,7 @@
 {
   "name": "@themobiusstrip/agentpay-guard",
-  "version": "0.0.4",
-  "description": "Stateful x402 policy plugin with restart-safe SQLite accounting. Atomic reserve-before-sign budget cap, trusted intent constraint check, and duplicate-authorization guard.",
+  "version": "0.0.5",
+  "description": "Stateful x402 policy plugin with restart-safe SQLite accounting. Per-payment ceiling, atomic reserve-before-sign budget cap, trusted intent constraint check, and duplicate-authorization guard.",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

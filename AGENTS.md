@@ -142,6 +142,8 @@ spots. This is a process check, not a containment boundary.
   Wrap at ~72 chars.
 - **PR body:** caveman too (style below), same bar as the commit body —
   summary, bugs/changes, tests. No fluff sections.
+- **Release changelog:** a release tag may land first. Next PR with other changes
+  must also update root `CHANGELOG.md` for that release before merge.
 - **No process narrative** in commit/PR text — no conversation context, no cited
   sources, no timings/durations, no prompts, no "as requested". Describe the change
   and its rationale, nothing about how it was produced.

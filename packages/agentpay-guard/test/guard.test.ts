@@ -99,6 +99,20 @@ describe("guard: hook wiring + fail-closed", () => {
     expect(res).toEqual({ abort: true, reason: expect.stringContaining("envelope_scheme") });
   });
 
+  it("aborts above the standalone per-payment ceiling", async () => {
+    const { client, store } = install({
+      policy: testPolicy({ maxPaymentAmount: 99_999n }),
+    });
+    const res = await client.before(ctx());
+    expect(res).toEqual({
+      abort: true,
+      reason: expect.stringContaining("payment_amount_exceeds"),
+    });
+    await expect(
+      store.committedAmount("p1", "__no_mandate__", 1_000_000, 60_000),
+    ).resolves.toBe(0n);
+  });
+
   it("fail-CLOSED: a throwing mandateVerifier aborts (never falls through to allow)", async () => {
     const { client } = install({
       policy: testPolicy({ profile: "mandate-required" }),

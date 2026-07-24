@@ -5,6 +5,7 @@ import {
   DEFAULT_STATE_DB,
   storeConfigFromEnv,
 } from "../src/config.js";
+import { createPaymentProxy } from "../src/proxy.js";
 
 describe("configFromEnv", () => {
   it("returns defaults for an empty environment", () => {
@@ -14,24 +15,62 @@ describe("configFromEnv", () => {
     expect(cfg.allowedHosts).toBeUndefined();
   });
 
-  it("parses budget/window/ceiling knobs", () => {
+  it("parses budget/window/payment/ceiling knobs", () => {
     const cfg = configFromEnv({
       PORT: "5000",
       WINDOW_MS: "60000",
       CAP: "1000000",
       AGG_CAP: "5000000",
+      MAX_PAYMENT: "250000",
       CEILING_S: "30",
     });
     expect(cfg.port).toBe(5000);
     expect(cfg.windowMs).toBe(60_000);
     expect(cfg.perMandateCap).toBe(1_000_000n);
     expect(cfg.principalAggregateCap).toBe(5_000_000n);
+    expect(cfg.maxPaymentAmount).toBe(250_000n);
     expect(cfg.ceilingSeconds).toBe(30);
   });
 
   it("rejects malformed money knobs instead of falling back", () => {
     expect(() => configFromEnv({ CAP: "0.10" })).toThrow(/CAP/);
+    expect(() => configFromEnv({ MAX_PAYMENT: "-1" })).toThrow(/MAX_PAYMENT/);
+    expect(() => configFromEnv({ MAX_PAYMENT: "0.10" })).toThrow(/MAX_PAYMENT/);
     expect(() => configFromEnv({ PORT: "-1" })).toThrow(/PORT/);
+  });
+
+  it("accepts zero as a per-payment deny-all ceiling", () => {
+    expect(configFromEnv({ MAX_PAYMENT: "0" }).maxPaymentAmount).toBe(0n);
+  });
+
+  it("wires MAX_PAYMENT into budget-only guard policy", () => {
+    const config = configFromEnv({ MAX_PAYMENT: "250000" });
+    const { policy } = createPaymentProxy(
+      `0x${"11".repeat(32)}`,
+      config,
+    );
+    expect(policy).toMatchObject({
+      profile: "budget-only",
+      maxPaymentAmount: 250_000n,
+    });
+    expect(config.mandate).toBeUndefined();
+  });
+
+  it.each([
+    ["negative bigint", -1n],
+    ["NaN", Number.NaN],
+    ["Infinity", Number.POSITIVE_INFINITY],
+    ["string", "250000"],
+  ])("rejects invalid programmatic maxPaymentAmount: %s", (_label, invalid) => {
+    expect(() =>
+      createPaymentProxy(
+        `0x${"11".repeat(32)}`,
+        {
+          ...DEFAULTS,
+          maxPaymentAmount: invalid as bigint,
+        },
+      ),
+    ).toThrow(/maxPaymentAmount must be a non-negative bigint/);
   });
 
   it("builds a pinned mandate and lowercases the payee", () => {

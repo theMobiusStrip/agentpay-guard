@@ -41,6 +41,7 @@ Each answers a *different* question; they are complementary, not redundant.
 | Control | Question | Enforced by | A boundary? |
 | --- | --- | --- | --- |
 | **MVP envelope** | Is this the one slice we enforce? | fail-closed allowlist (`policy/envelope.ts`) | **Yes** — deny by default; unknown scheme/network/asset blocks |
+| **Per-payment ceiling** | Is this authorization too large? | `Policy.maxPaymentAmount` before state mutation (`evaluate.ts`) | **Yes**, when configured — applies in both profiles; no mandate required |
 | **Atomic budget cap** | Over the cumulative cap? | reserve-before-sign atomic store (`store/`) | **Yes**, for spend accounting — spans sign→settle; proxy CLI state survives restart |
 | **Trusted intent check** | Right payee / amount / asset? | provenance-verified mandate (`policy/intent.ts`) | **Conditional** — only as strong as the mandate's provenance; fails safe when intent is agent-derived |
 | **Duplicate-auth guard** | Double-sign one purchase? | payer-owned dedup key (`policy/dedup.ts`) | **Partial** — needs a payer-owned id to be precise; the cap is the backstop for jittered re-presentation (see Honest limitations) |
@@ -50,8 +51,9 @@ Each answers a *different* question; they are complementary, not redundant.
 ## What the plugin guarantees
 
 - **Deterministic, fail-closed spend enforcement** on tool-mediated payment paths:
-  anything outside the envelope blocks; the budget cap is atomic and cannot be
-  raced past; intent binding fails safe.
+  anything outside the envelope blocks; configured per-payment ceilings block
+  oversized authorizations before state mutation; budget caps are atomic and
+  cannot be raced past; intent binding fails safe.
 - **Spend accounting across the sign→settle gap** — a signed-but-unsettled
   authorization holds the cap. Restart-safe SQLite ships in the primary guard
   package through its `/sqlite` entry, and proxy CLI uses it by default. Before
@@ -92,10 +94,16 @@ Each answers a *different* question; they are complementary, not redundant.
   method. `payTo`/`value` bind cleanly; URL binding rests on a separately-signed
   mandate. When the only "intent" is agent-derived, the check **fails safe** rather
   than verifying attacker-vs-attacker.
-- **The `budget-only` profile has no intent check.** payTo-tamper and
-  bait-and-switch are **not** caught in that profile (the cap is the only control) —
-  measured and disclosed in DrainBench. Use `mandate-required` when the ecosystem
+- **The `budget-only` profile has no intent check.** A configured per-payment
+  ceiling bounds any one authorization, but does not prove right payee or quoted
+  amount. payTo-tamper and bait-and-switch at or below that ceiling are **not**
+  caught; cumulative caps remain backstops. Use `mandate-required` when ecosystem
   emits mandates.
+- **The per-payment ceiling is not a cumulative budget or intent binding.**
+  An adversary can split drain across many below-ceiling payments. `perMandateCap`
+  and `principalAggregateCap` bound cumulative loss; trusted mandate binds payee
+  and quoted amount. When both standalone ceiling and mandate `maxAmount` exist,
+  both apply.
 - **The duplicate-auth guard needs a payer-owned identity.** It keys on a
   payer-set `paymentIdentifier` or `intentId`. Absent both, it falls back to
   `(mandate, resourceUrl, asset)` and treats distinct purchases sharing that tuple

@@ -7,7 +7,8 @@
  *
  * serve env: PAYER_PK (else WALLET_FILE, default ./.agentpay-proxy-wallet.json,
  * auto-generated on first run — TESTNET ONLY, never a real key), HOST, PORT,
- * WINDOW_MS, CAP, AGG_CAP, CEILING_S, MANDATE=1 + PIN_PAYTO/PIN_MAX,
+ * WINDOW_MS, CAP, AGG_CAP, MAX_PAYMENT, CEILING_S,
+ * MANDATE=1 + PIN_PAYTO/PIN_MAX,
  * ALLOWED_HOSTS, STORE=sqlite|memory, STATE_DB, MAX_ACCOUNTING_WINDOW_MS. mcp
  * env: PROXY_URL (default http://127.0.0.1:4020).
  */
@@ -167,6 +168,9 @@ async function serve(): Promise<void> {
     console.log(
       `  profile: ${policy.profile}` +
         (config.mandate ? ` (payee pinned ${config.mandate.payTo}, max ${config.mandate.maxAmount})` : ""),
+    );
+    console.log(
+      `  max payment: ${config.maxPaymentAmount ?? "off"}`,
     );
     if (config.host !== "127.0.0.1" && config.host !== "localhost") {
       console.log("  WARNING: bound to a non-loopback host. This process holds a signing key —");

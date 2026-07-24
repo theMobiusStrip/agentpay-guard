@@ -58,6 +58,135 @@ describe("evaluate: MVP envelope fails closed", () => {
   });
 });
 
+describe("evaluate: per-payment ceiling", () => {
+  it.each([
+    ["negative bigint", -1n],
+    ["NaN", Number.NaN],
+    ["Infinity", Number.POSITIVE_INFINITY],
+    ["string", "100000"],
+  ])("blocks invalid runtime policy value: %s", async (_label, invalid) => {
+    const store = new InMemoryAtomicStore();
+    const policy = testPolicy({
+      maxPaymentAmount: invalid as bigint,
+    });
+    const d = await evaluatePayment(
+      { payment: payment(), dedup: {}, now: 1000 },
+      deps(store, policy),
+    );
+    expect(d).toMatchObject({
+      decision: "block",
+      reason: "policy_invalid",
+      message: "maxPaymentAmount must be a non-negative bigint",
+    });
+    await expect(
+      store.committedAmount("p1", "__no_mandate__", 1000, policy.windowMs),
+    ).resolves.toBe(0n);
+  });
+
+  it("blocks above the limit before reservation or dedup state changes", async () => {
+    const store = new InMemoryAtomicStore();
+    const policy = testPolicy({
+      maxPaymentAmount: 100_000n,
+      perMandateCap: 1_000_000n,
+    });
+    const over = await evaluatePayment(
+      {
+        payment: payment({ value: 100_001n }),
+        dedup: { paymentIdentifier: "same-purchase" },
+        now: 1000,
+      },
+      deps(store, policy),
+    );
+    expect(over).toMatchObject({
+      decision: "block",
+      reason: "payment_amount_exceeds",
+      message: "payment amount 100001 exceeds max 100000",
+      matchedRule: "per-payment-max",
+    });
+
+    const atLimit = await evaluatePayment(
+      {
+        payment: payment({ value: 100_000n }),
+        dedup: { paymentIdentifier: "same-purchase" },
+        now: 1001,
+      },
+      deps(store, policy),
+    );
+    expect(atLimit.decision).toBe("allow");
+    await expect(
+      store.committedAmount("p1", "__no_mandate__", 1001, policy.windowMs),
+    ).resolves.toBe(100_000n);
+  });
+
+  it("allows the exact limit and treats zero as a valid deny-all ceiling", async () => {
+    const atLimit = await evaluatePayment(
+      { payment: payment({ value: 100_000n }), dedup: {}, now: 1000 },
+      deps(
+        new InMemoryAtomicStore(),
+        testPolicy({ maxPaymentAmount: 100_000n }),
+      ),
+    );
+    expect(atLimit.decision).toBe("allow");
+
+    const positive = await evaluatePayment(
+      { payment: payment({ value: 1n }), dedup: {}, now: 1000 },
+      deps(
+        new InMemoryAtomicStore(),
+        testPolicy({ maxPaymentAmount: 0n }),
+      ),
+    );
+    expect(positive.reason).toBe("payment_amount_exceeds");
+  });
+
+  it("applies before a looser mandate limit", async () => {
+    const mandate: VerifiedMandate = {
+      mandateId: "m1",
+      issuer: "did:issuer",
+      constraints: { maxAmount: 200_000n },
+    };
+    const d = await evaluatePayment(
+      {
+        payment: payment({ value: 150_000n }),
+        mandate,
+        dedup: {},
+        now: 1000,
+      },
+      deps(
+        new InMemoryAtomicStore(),
+        testPolicy({
+          profile: "mandate-required",
+          maxPaymentAmount: 100_000n,
+        }),
+      ),
+    );
+    expect(d.reason).toBe("payment_amount_exceeds");
+  });
+
+  it("keeps a stricter mandate limit effective", async () => {
+    const mandate: VerifiedMandate = {
+      mandateId: "m1",
+      issuer: "did:issuer",
+      constraints: { maxAmount: 100_000n },
+    };
+    const d = await evaluatePayment(
+      {
+        payment: payment({ value: 100_001n }),
+        mandate,
+        dedup: {},
+        now: 1000,
+      },
+      deps(
+        new InMemoryAtomicStore(),
+        testPolicy({
+          profile: "mandate-required",
+          maxPaymentAmount: 200_000n,
+        }),
+      ),
+    );
+    expect(d.reason).toBe("intent_amount_exceeds");
+  });
+});
+
 describe("evaluate: validBefore clamp", () => {
   it("blocks when requested validity exceeds the ceiling", async () => {
     const policy = testPolicy({ validBeforeCeilingSeconds: 30 });

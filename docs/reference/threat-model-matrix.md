@@ -26,7 +26,7 @@ fail-closed covers "store unavailable", not a poisoned store.
 
 | Attack | Reaches guard via | Control | Status | Citation |
 |---|---|---|---|---|
-| Prompt-injection-to-pay (goal hijack) | merchant response / MCP tool text | intent-constraint check (if trusted mandate) + budget cap | **defended** (mandate-required) / cap-only (budget-only) | OWASP ASI01; arXiv 2601.22569 (ASR only, **no** drain-rate) |
+| Prompt-injection-to-pay (goal hijack) | merchant response / MCP tool text | optional per-payment ceiling + budget cap; intent check if trusted mandate | **defended** (mandate-required) / cumulative-cap bounded, plus optional per-payment bound (budget-only) | OWASP ASI01; arXiv 2601.22569 (ASR only, **no** drain-rate) |
 | Confused deputy / MCP tool poisoning | malicious tool description | intent-constraint check | **defended** (mandate-required) | Invariant Labs (Apr 2025); MCPTox 2508.14925 |
 | Rug pull (tool def mutated post-approval) | tool re-definition | TOFU on tool identity | **analyzed** (stretch) | Invariant; ETDI 2506.01333 |
 | Price/quote bait-and-switch (quote low, bill high) | 402 header | intent-constraint check (quoted vs about-to-be-signed `value`) | **defended** (mandate-required) | **self-authored fixture** — see citation note below |
@@ -67,6 +67,7 @@ of settlement, framed around invariants I1–I5), but **do not** use the fabrica
 
 | Control (built) | Primary metric it moves |
 |---|---|
+| Per-payment ceiling | `unauthorized_payer_outflow` (single oversized authorization) |
 | Atomic budget cap (rolling window, reserve-before-sign, principal aggregate) | `unauthorized_payer_outflow` (drain), `benign_false_block_rate` + latency |
 | Trusted intent constraint check | `unauthorized_payer_outflow` (payTo-tamper, quote-vs-billed) |
 | Duplicate-auth guard | `unauthorized_payer_outflow` (re-presentation) |

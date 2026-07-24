@@ -12,10 +12,12 @@ Stateful, agent-agnostic x402 v2 policy plugin. Installs over the native
 1. **Atomic budget cap** — rolling-window cumulative spend, reserve-before-sign,
    keyed on `(principalId, mandateId)` with an optional principal-level aggregate
    cap. Reservations span the sign→settle gap and reconcile crash-safely.
-2. **Trusted intent constraint check** — binds the about-to-be-signed
+2. **Per-payment ceiling** — optional hard maximum for each authorization,
+   independent of mandates and active in either policy profile.
+3. **Trusted intent constraint check** — binds the about-to-be-signed
    `{ payTo, value, asset, network }` against a provenance-verified mandate.
    Honest naming: a *constraint check*, not AP2 SD-JWT-VC cryptographic binding.
-3. **Duplicate-authorization guard** — keyed on the payer-owned
+4. **Duplicate-authorization guard** — keyed on the payer-owned
    payment-identifier / client intent, never merchant-controlled inputs.
 
 Everything outside the MVP envelope (`exact` + EIP-3009 + Base Sepolia USDC) fails

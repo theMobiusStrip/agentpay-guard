@@ -1,8 +1,8 @@
 /**
  * Proxy configuration. MVP envelope is fixed to the guard's tested slice —
  * `exact` + Base Sepolia + USDC — everything else fails closed. Knobs cover
- * budget, authorization-lifetime ceiling, optional pinned mandate, and an
- * optional origin allowlist for the fetch capability.
+ * budget, per-payment ceiling, authorization-lifetime ceiling, optional pinned
+ * mandate, and optional origin allowlist for the fetch capability.
  */
 
 export const BASE_SEPOLIA = "eip155:84532" as const;
@@ -24,6 +24,8 @@ export interface ProxyConfig {
   windowMs: number;
   /** Per-mandate cumulative cap per window, atomic units. */
   perMandateCap: bigint;
+  /** Optional per-payment ceiling, atomic units. Independent of mandate mode. */
+  maxPaymentAmount?: bigint;
   /** Aggregate cap across ALL mandates — salami-drain stop. */
   principalAggregateCap: bigint;
   /**
@@ -59,7 +61,8 @@ export const DEFAULTS: Readonly<Omit<ProxyConfig, "mandate" | "allowedHosts">> =
 
 /**
  * Build a ProxyConfig from environment variables:
- * HOST, PORT, WINDOW_MS, CAP, AGG_CAP, CEILING_S (numbers/atomic bigints),
+ * HOST, PORT, WINDOW_MS, CAP, AGG_CAP, MAX_PAYMENT, CEILING_S
+ * (numbers/atomic bigints),
  * MANDATE=1 + PIN_PAYTO + PIN_MAX (pinned mandate; PIN_PAYTO required),
  * ALLOWED_HOSTS (comma-separated host[:port] list).
  * Throws on malformed numeric values — misconfigured money knobs must not
@@ -74,6 +77,9 @@ export function configFromEnv(env: NodeJS.ProcessEnv = process.env): ProxyConfig
     principalAggregateCap: bigintFromEnv(env, "AGG_CAP", DEFAULTS.principalAggregateCap),
     ceilingSeconds: intFromEnv(env, "CEILING_S", DEFAULTS.ceilingSeconds),
   };
+  if (env.MAX_PAYMENT !== undefined && env.MAX_PAYMENT !== "") {
+    cfg.maxPaymentAmount = bigintFromEnv(env, "MAX_PAYMENT", 0n);
+  }
   if (env.MANDATE === "1") {
     const payTo = env.PIN_PAYTO?.toLowerCase();
     if (!payTo || !/^0x[0-9a-f]{40}$/.test(payTo)) {
